@@ -1,14 +1,17 @@
 {
-  "name": "itsm-platform",
+  "name": "twisteritsm",
+  "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "services/*",
-    "gateway"
-  ],
+  "prisma": { "schema": "apps/api/prisma/schema.prisma" },
+  "workspaces": ["packages/*", "apps/*", "frontend/webapp"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "migrate": "node db/migrate.js"
+    "build:api": "npm run build --workspace @twisteritsm/api",
+    "start:api": "node apps/api/dist/main.js",
+    "dev:web": "npm run dev --workspace @itsm/webapp",
+    "migrate": "node db/migrate.js",
+    "prisma:pull": "prisma db pull",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

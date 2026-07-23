@@ -1,0 +1,319 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "automation", "catalog", "cmdb", "events", "ticketing", "users"]
+}
+
+model permissions {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String             @unique
+  role_permissions role_permissions[]
+
+  @@schema("auth")
+}
+
+model refresh_tokens {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String     @db.Uuid
+  token_hash String
+  expires_at DateTime   @db.Timestamptz(6)
+  revoked    Boolean    @default(false)
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  users_auth users_auth @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("auth")
+}
+
+model role_permissions {
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([role_id, permission_id])
+  @@schema("auth")
+}
+
+model roles {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique
+  description      String?
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  role_permissions role_permissions[]
+  users_auth       users_auth[]
+
+  @@schema("auth")
+}
+
+model users_auth {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String           @unique @db.Citext
+  password_hash  String?
+  source         String           @default("local")
+  role_id        String?          @db.Uuid
+  is_active      Boolean          @default(true)
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime         @default(now()) @db.Timestamptz(6)
+  refresh_tokens refresh_tokens[]
+  roles          roles?           @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([email], map: "idx_users_auth_email")
+  @@schema("auth")
+}
+
+model job_logs {
+  id      BigInt   @id @default(autoincrement())
+  job_id  String   @db.Uuid
+  level   String   @default("info")
+  message String
+  at      DateTime @default(now()) @db.Timestamptz(6)
+  jobs    jobs     @relation(fields: [job_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("automation")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model jobs {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  runbook_id   String?    @db.Uuid
+  requested_by String     @db.Uuid
+  params       Json       @default("{}")
+  dry_run      Boolean    @default(true)
+  status       String     @default("queued")
+  result       Json?
+  started_at   DateTime?  @db.Timestamptz(6)
+  finished_at  DateTime?  @db.Timestamptz(6)
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+  job_logs     job_logs[]
+  runbooks     runbooks?  @relation(fields: [runbook_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("automation")
+}
+
+model runbooks {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String   @unique
+  description     String?
+  connector       String
+  action          String
+  params_schema   Json     @default("{}")
+  dry_run_default Boolean  @default(true)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  jobs            jobs[]
+
+  @@schema("automation")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model approvals {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  request_id  String    @db.Uuid
+  approver_id String?   @db.Uuid
+  decision    String?
+  comment     String?
+  decided_at  DateTime? @db.Timestamptz(6)
+  requests    requests  @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("catalog")
+}
+
+model items {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String     @unique
+  description        String?
+  category           String?
+  form_schema        Json       @default("[]")
+  requires_approval  Boolean    @default(false)
+  automation_runbook String?
+  active             Boolean    @default(true)
+  created_at         DateTime   @default(now()) @db.Timestamptz(6)
+  requests           requests[]
+
+  @@schema("catalog")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model requests {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_id      String      @db.Uuid
+  requester_id String      @db.Uuid
+  form_data    Json        @default("{}")
+  status       String      @default("submitted")
+  ticket_id    String?     @db.Uuid
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime    @default(now()) @db.Timestamptz(6)
+  approvals    approvals[]
+  items        items       @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_requests_status")
+  @@schema("catalog")
+}
+
+model ci_classes {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String   @unique
+  icon              String?
+  attributes_schema Json     @default("{}")
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  cis               cis[]
+
+  @@schema("cmdb")
+}
+
+model ci_history {
+  id     BigInt   @id @default(autoincrement())
+  ci_id  String   @db.Uuid
+  change Json
+  at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("cmdb")
+}
+
+model ci_relations {
+  id                              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_id                       String @db.Uuid
+  target_id                       String @db.Uuid
+  relation                        String
+  cis_ci_relations_source_idTocis cis    @relation("ci_relations_source_idTocis", fields: [source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cis_ci_relations_target_idTocis cis    @relation("ci_relations_target_idTocis", fields: [target_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([source_id, target_id, relation])
+  @@schema("cmdb")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cis {
+  id                                       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  class_id                                 String         @db.Uuid
+  name                                     String
+  status                                   String         @default("active")
+  environment                              String?        @default("prod")
+  attributes                               Json           @default("{}")
+  owner_id                                 String?        @db.Uuid
+  discovered_by                            String?
+  created_at                               DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at                               DateTime       @default(now()) @db.Timestamptz(6)
+  ci_relations_ci_relations_source_idTocis ci_relations[] @relation("ci_relations_source_idTocis")
+  ci_relations_ci_relations_target_idTocis ci_relations[] @relation("ci_relations_target_idTocis")
+  ci_classes                               ci_classes     @relation(fields: [class_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([class_id, name])
+  @@index([attributes], map: "idx_cis_attrs", type: Gin)
+  @@index([class_id], map: "idx_cis_class")
+  @@schema("cmdb")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model events {
+  id         BigInt   @id @default(autoincrement())
+  source     String
+  severity   String   @default("info")
+  subject    String
+  payload    Json     @default("{}")
+  ci_id      String?  @db.Uuid
+  ticket_id  String?  @db.Uuid
+  correlated Boolean  @default(false)
+  at         DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([at(sort: Desc)], map: "idx_events_at")
+  @@schema("events")
+}
+
+model ticket_comments {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticket_id  String   @db.Uuid
+  author_id  String   @db.Uuid
+  body       String
+  internal   Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  tickets    tickets  @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([ticket_id, created_at], map: "idx_comments_ticket")
+  @@schema("ticketing")
+}
+
+model ticket_history {
+  id        BigInt   @id @default(autoincrement())
+  ticket_id String   @db.Uuid
+  actor_id  String?  @db.Uuid
+  field     String
+  old_value String?
+  new_value String?
+  at        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([ticket_id, at], map: "idx_history_ticket")
+  @@schema("ticketing")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model tickets {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number                BigInt            @unique(map: "idx_tickets_number") @default(autoincrement())
+  type                  String            @default("incident")
+  title                 String
+  description           String?
+  status                String            @default("new")
+  priority              String            @default("p3")
+  category              String?
+  requester_id          String            @db.Uuid
+  assignee_id           String?           @db.Uuid
+  team_id               String?           @db.Uuid
+  sla_due_at            DateTime?         @db.Timestamptz(6)
+  resolved_at           DateTime?         @db.Timestamptz(6)
+  created_at            DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime          @default(now()) @db.Timestamptz(6)
+  is_existing           Boolean           @default(false)
+  related_ticket_number BigInt?
+  first_seen_on         DateTime?         @db.Date
+  users_affected        String?
+  error_message         String?
+  asset_tag             String?
+  callback_number       String?
+  troubleshooting       String?
+  root_cause            String?
+  resolution_notes      String?
+  kb_article            String?
+  ticket_comments       ticket_comments[]
+
+  @@index([assignee_id], map: "idx_tickets_assignee")
+  @@index([created_at(sort: Desc)], map: "idx_tickets_created")
+  @@index([requester_id], map: "idx_tickets_requester")
+  @@schema("ticketing")
+}
+
+model team_members {
+  team_id String @db.Uuid
+  user_id String @db.Uuid
+  teams   teams  @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users   users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([team_id, user_id])
+  @@schema("users")
+}
+
+model teams {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String         @unique
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  team_members team_members[]
+
+  @@schema("users")
+}
+
+model users {
+  id           String         @id @db.Uuid
+  email        String         @unique @db.Citext
+  display_name String
+  department   String?
+  phone        String?
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime       @default(now()) @db.Timestamptz(6)
+  team_members team_members[]
+
+  @@schema("users")
+}
