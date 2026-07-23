@@ -29,12 +29,16 @@ export class TicketsService {
     this.can(user, 'ticket:read');
     const params: unknown[] = [];
     let where = 'WHERE 1=1';
-    if (q.status) { params.push(q.status); where += ` AND status = $${params.length}`; }
+    if (q.status) { params.push(q.status); where += ` AND t.status = $${params.length}`; }
     const isTech = user.permissions.includes('ticket:assign') || user.permissions.includes('admin:*');
-    if (q.mine === 'true' || !isTech) { params.push(user.sub); where += ` AND requester_id = $${params.length}`; }
+    if (q.mine === 'true' || !isTech) { params.push(user.sub); where += ` AND t.requester_id = $${params.length}`; }
     params.push(Math.min(Number(q.limit || 50), 200));
     const r = await this.db.query(
-      `SELECT * FROM ticketing.tickets ${where} ORDER BY created_at DESC LIMIT $${params.length}`,
+      `SELECT t.*, req.display_name AS requester_name, asg.display_name AS assignee_name
+       FROM ticketing.tickets t
+       LEFT JOIN users.users req ON req.id = t.requester_id
+       LEFT JOIN users.users asg ON asg.id = t.assignee_id
+       ${where} ORDER BY t.created_at DESC LIMIT $${params.length}`,
       params,
     );
     return r.rows;
@@ -42,17 +46,28 @@ export class TicketsService {
 
   async get(user: JwtUser, id: string) {
     this.can(user, 'ticket:read');
-    const t = await this.db.query(`SELECT * FROM ticketing.tickets WHERE id=$1`, [id]);
+    const t = await this.db.query(
+      `SELECT t.*, req.display_name AS requester_name, asg.display_name AS assignee_name
+       FROM ticketing.tickets t
+       LEFT JOIN users.users req ON req.id = t.requester_id
+       LEFT JOIN users.users asg ON asg.id = t.assignee_id
+       WHERE t.id=$1`, [id]);
     if (!t.rows[0]) throw new NotFoundException();
     const comments = await this.db.query(
-      `SELECT * FROM ticketing.ticket_comments WHERE ticket_id=$1 ORDER BY created_at`, [id]);
+      `SELECT c.*, u.display_name AS author_name
+       FROM ticketing.ticket_comments c LEFT JOIN users.users u ON u.id = c.author_id
+       WHERE c.ticket_id=$1 ORDER BY c.created_at`, [id]);
     const history = await this.db.query(
-      `SELECT * FROM ticketing.ticket_history WHERE ticket_id=$1 ORDER BY at`, [id]);
+      `SELECT h.*, u.display_name AS actor_name
+       FROM ticketing.ticket_history h LEFT JOIN users.users u ON u.id = h.actor_id
+       WHERE h.ticket_id=$1 ORDER BY h.at`, [id]);
     return { ...t.rows[0], comments: comments.rows, history: history.rows };
   }
 
   async update(user: JwtUser, id: string, dto: Partial<{ status: string; priority: string; assignee_id: string; category: string; title: string; description: string }>) {
     this.can(user, dto.assignee_id !== undefined ? 'ticket:assign' : 'ticket:write');
+    const before = (await this.db.query(`SELECT * FROM ticketing.tickets WHERE id=$1`, [id])).rows[0];
+    if (!before) throw new NotFoundException();
     const allowed = ['status', 'priority', 'assignee_id', 'category', 'title', 'description'] as const;
     const sets: string[] = [];
     const params: unknown[] = [];
@@ -66,7 +81,16 @@ export class TicketsService {
       `UPDATE ticketing.tickets SET ${sets.join(', ')} WHERE id = $${params.length} RETURNING *`,
       params,
     );
-    if (!r.rows[0]) throw new NotFoundException();
+    // audit applicatif AVEC acteur — qui a changé quoi
+    for (const k of allowed) {
+      if (dto[k] !== undefined && String(before[k] ?? '') !== String(dto[k] ?? '')) {
+        await this.db.query(
+          `INSERT INTO ticketing.ticket_history (ticket_id, actor_id, field, old_value, new_value)
+           VALUES ($1,$2,$3,$4,$5)`,
+          [id, user.sub, k, before[k] == null ? null : String(before[k]), String(dto[k])],
+        );
+      }
+    }
     return r.rows[0];
   }
 
