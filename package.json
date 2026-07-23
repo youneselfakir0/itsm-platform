@@ -1,0 +1,22 @@
+{
+  "name": "itsm-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "gateway"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "migrate": "node db/migrate.js"
+  },
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "typescript": "^7.0.2"
+  }
+}

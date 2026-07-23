@@ -1,0 +1,11 @@
+{
+  "name": "@itsm/gateway",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}
