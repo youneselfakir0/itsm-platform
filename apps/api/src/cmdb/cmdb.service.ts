@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../core/prisma.service';
+import { LdapService } from '../identity/ldap.service';
 
 @Injectable()
 export class CmdbService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private ldap: LdapService) {}
 
   classes() { return this.prisma.ci_classes.findMany({ orderBy: { name: 'asc' } }); }
 
@@ -58,4 +59,36 @@ export class CmdbService {
   createRelation(dto: { source_id: string; target_id: string; relation: string }) {
     return this.prisma.ci_relations.create({ data: dto });
   }
+
+  /** Découverte CMDB via AD (ordinateurs). Upsert + audit dans discovery.runs. */
+  async discoverAd(): Promise<{ status: string; found: number; created: number; updated: number; errors: string[] }> {
+    const run = await this.prisma.runs.create({ data: { source: 'ad', status: 'running' } });
+    const computers = await this.ldap.searchComputers();
+    let created = 0, updated = 0;
+    const errors: string[] = [];
+    const serverClass = await this.prisma.ci_classes.findFirst({ where: { name: 'Server' } })
+      ?? await this.prisma.ci_classes.findFirst({ where: { name: 'Computer' } });
+    for (const comp of computers) {
+      try {
+        const name = comp.dnsHostName || comp.cn;
+        const attrs = { os: comp.os, osVersion: comp.osVer, source: 'ad-discovery', discoveredAt: new Date().toISOString() };
+        const existing = await this.prisma.cis.findFirst({ where: { name } });
+        if (existing) {
+          await this.prisma.cis.update({ where: { id: existing.id }, data: { attributes: { ...(existing.attributes as any), ...attrs }, discovered_by: 'ad', updated_at: new Date() } });
+          updated++;
+        } else if (serverClass) {
+          await this.prisma.cis.create({ data: { class_id: serverClass.id, name, attributes: attrs, discovered_by: 'ad' } });
+          created++;
+        }
+      } catch (e: any) { errors.push(`${comp.cn}: ${e?.message ?? e}`); }
+    }
+    await this.prisma.runs.update({
+      where: { id: run.id },
+      data: { status: 'done', found: computers.length, created, updated, errors, finished_at: new Date() },
+    });
+    return { status: 'done', found: computers.length, created, updated, errors };
+  }
+
+  /** Dernières découvertes. */
+  discoveryRuns() { return this.prisma.runs.findMany({ orderBy: { started_at: 'desc' }, take: 20 }); }
 }

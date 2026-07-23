@@ -95,6 +95,28 @@ export class LdapService {
     });
   }
 
+  /** Recherche les ordinateurs/serveurs AD (pour discovery CMDB). Résilient. */
+  async searchComputers(): Promise<{ dnsHostName: string; cn: string; os: string; osVer: string }[]> {
+    const c = this.client();
+    try {
+      await c.bind(AD_BIND, AD_BIND_PW);
+      const res = await c.search(AD_BASE, {
+        scope: 'sub',
+        filter: '(objectClass=computer)',
+        attributes: ['dNSHostName', 'cn', 'operatingSystem', 'operatingSystemVersion'],
+      });
+      return res.searchEntries.map((e) => ({
+        dnsHostName: String((e as any).dNSHostName ?? ''),
+        cn: String((e as any).cn ?? ''),
+        os: String((e as any).operatingSystem ?? ''),
+        osVer: String((e as any).operatingSystemVersion ?? ''),
+      })).filter((x) => x.cn);
+    } catch (e: any) {
+      this.log.warn(`discovery AD échouée: ${e?.message ?? e}`);
+      return []; // résilient: pas de crash
+    } finally { await c.unbind().catch(() => {}); }
+  }
+
   /** Synchronisation complète (tous les users AD -> TwisterITSM). */
   async syncAll(): Promise<{ synced: number; errors: string[] }> {
     const c = this.client();

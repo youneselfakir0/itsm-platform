@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["auth", "automation", "catalog", "cmdb", "events", "ticketing", "users", "workflow"]
+  schemas  = ["auth", "automation", "catalog", "cmdb", "discovery", "events", "ticketing", "users", "workflow"]
 }
 
 model permissions {
@@ -363,4 +363,19 @@ model workflows {
   sla_policies    sla_policies? @relation(fields: [sla_policy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("workflow")
+}
+
+model runs {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source      String    @default("ad")
+  status      String    @default("running")
+  found       Int       @default(0)
+  created     Int       @default(0)
+  updated     Int       @default(0)
+  errors      Json      @default("[]")
+  started_at  DateTime  @default(now()) @db.Timestamptz(6)
+  finished_at DateTime? @db.Timestamptz(6)
+
+  @@index([started_at(sort: Desc)], map: "idx_discovery_started")
+  @@schema("discovery")
 }

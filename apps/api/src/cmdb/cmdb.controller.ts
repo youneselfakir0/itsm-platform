@@ -15,4 +15,6 @@ export class CmdbController {
   @Permissions('ci:read') @Get('cis/:id') get(@Param('id') id: string) { return this.svc.getCi(id); }
   @Permissions('ci:write') @Patch('cis/:id') update(@Param('id') id: string, @Body() dto: any) { return this.svc.updateCi(id, dto); }
   @Permissions('ci:write') @Post('relations') rel(@Body() dto: any) { return this.svc.createRelation(dto); }
+  @Permissions('ci:discover') @Post('discover/ad') discover() { return this.svc.discoverAd(); }
+  @Permissions('ci:read') @Get('discover/runs') runs() { return this.svc.discoveryRuns(); }
 }
