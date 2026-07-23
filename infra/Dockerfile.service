@@ -1,0 +1,13 @@
+# Dockerfile générique pour un service Node (build arg SERVICE=<nom>)
+FROM node:22-alpine AS base
+WORKDIR /app
+ARG SERVICE
+COPY package*.json ./
+COPY packages ./packages
+COPY services/${SERVICE} ./services/${SERVICE}
+COPY gateway ./gateway
+RUN npm install --omit=dev --no-audit --no-fund
+ENV NODE_ENV=production
+ARG START_PATH
+ENV START_PATH=${START_PATH}
+CMD node ${START_PATH}

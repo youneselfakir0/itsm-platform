@@ -1,0 +1,369 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: gateway } }
+  template:
+    metadata: { labels: { app: gateway } }
+    spec:
+      containers:
+        - name: gateway
+          image: registry.local/itsm/gateway:latest
+          ports: [{ containerPort: 8080 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "8080" }
+            - { name: START_PATH, value: "gateway/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: itsm
+spec:
+  selector: { app: gateway }
+  ports: [{ port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: auth-service } }
+  template:
+    metadata: { labels: { app: auth-service } }
+    spec:
+      containers:
+        - name: auth-service
+          image: registry.local/itsm/auth-service:latest
+          ports: [{ containerPort: 3001 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3001" }
+            - { name: START_PATH, value: "services/auth-service/dist/main.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3001 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: itsm
+spec:
+  selector: { app: auth-service }
+  ports: [{ port: 3001, targetPort: 3001 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: user-service } }
+  template:
+    metadata: { labels: { app: user-service } }
+    spec:
+      containers:
+        - name: user-service
+          image: registry.local/itsm/user-service:latest
+          ports: [{ containerPort: 3002 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3002" }
+            - { name: START_PATH, value: "services/user-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3002 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: itsm
+spec:
+  selector: { app: user-service }
+  ports: [{ port: 3002, targetPort: 3002 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticketing-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ticketing-service } }
+  template:
+    metadata: { labels: { app: ticketing-service } }
+    spec:
+      containers:
+        - name: ticketing-service
+          image: registry.local/itsm/ticketing-service:latest
+          ports: [{ containerPort: 3003 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3003" }
+            - { name: START_PATH, value: "services/ticketing-service/dist/main.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3003 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticketing-service
+  namespace: itsm
+spec:
+  selector: { app: ticketing-service }
+  ports: [{ port: 3003, targetPort: 3003 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cmdb-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: cmdb-service } }
+  template:
+    metadata: { labels: { app: cmdb-service } }
+    spec:
+      containers:
+        - name: cmdb-service
+          image: registry.local/itsm/cmdb-service:latest
+          ports: [{ containerPort: 3004 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3004" }
+            - { name: START_PATH, value: "services/cmdb-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3004 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cmdb-service
+  namespace: itsm
+spec:
+  selector: { app: cmdb-service }
+  ports: [{ port: 3004, targetPort: 3004 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: automation-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: automation-service } }
+  template:
+    metadata: { labels: { app: automation-service } }
+    spec:
+      containers:
+        - name: automation-service
+          image: registry.local/itsm/automation-service:latest
+          ports: [{ containerPort: 3005 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3005" }
+            - { name: START_PATH, value: "services/automation-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3005 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: automation-service
+  namespace: itsm
+spec:
+  selector: { app: automation-service }
+  ports: [{ port: 3005, targetPort: 3005 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: events-service } }
+  template:
+    metadata: { labels: { app: events-service } }
+    spec:
+      containers:
+        - name: events-service
+          image: registry.local/itsm/events-service:latest
+          ports: [{ containerPort: 3006 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3006" }
+            - { name: START_PATH, value: "services/events-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3006 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-service
+  namespace: itsm
+spec:
+  selector: { app: events-service }
+  ports: [{ port: 3006, targetPort: 3006 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: catalog-service } }
+  template:
+    metadata: { labels: { app: catalog-service } }
+    spec:
+      containers:
+        - name: catalog-service
+          image: registry.local/itsm/catalog-service:latest
+          ports: [{ containerPort: 3007 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3007" }
+            - { name: START_PATH, value: "services/catalog-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3007 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: itsm
+spec:
+  selector: { app: catalog-service }
+  ports: [{ port: 3007, targetPort: 3007 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: reporting-service } }
+  template:
+    metadata: { labels: { app: reporting-service } }
+    spec:
+      containers:
+        - name: reporting-service
+          image: registry.local/itsm/reporting-service:latest
+          ports: [{ containerPort: 3008 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3008" }
+            - { name: START_PATH, value: "services/reporting-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3008 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reporting-service
+  namespace: itsm
+spec:
+  selector: { app: reporting-service }
+  ports: [{ port: 3008, targetPort: 3008 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: itsm
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ai-service } }
+  template:
+    metadata: { labels: { app: ai-service } }
+    spec:
+      containers:
+        - name: ai-service
+          image: registry.local/itsm/ai-service:latest
+          ports: [{ containerPort: 3009 }]
+          envFrom:
+            - secretRef: { name: itsm-secrets }
+            - configMapRef: { name: itsm-config }
+          env:
+            - { name: PORT, value: "3009" }
+            - { name: START_PATH, value: "services/ai-service/src/index.js" }
+          readinessProbe:
+            httpGet: { path: /health, port: 3009 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: itsm
+spec:
+  selector: { app: ai-service }
+  ports: [{ port: 3009, targetPort: 3009 }]

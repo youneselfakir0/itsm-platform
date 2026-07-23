@@ -1,0 +1,31 @@
+# k8s manifests TwisterITSM — namespace + un Deployment/Service par microservice.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: itsm
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: itsm-secrets
+  namespace: itsm
+type: Opaque
+stringData:
+  DATABASE_URL: postgres://itsm:CHANGE_ME@itsm-postgres:5432/itsm
+  JWT_SECRET: CHANGE_ME
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itsm-config
+  namespace: itsm
+data:
+  AUTH_URL: http://auth-service:3001
+  USER_URL: http://user-service:3002
+  TICKETING_URL: http://ticketing-service:3003
+  CMDB_URL: http://cmdb-service:3004
+  AUTOMATION_URL: http://automation-service:3005
+  EVENTS_URL: http://events-service:3006
+  CATALOG_URL: http://catalog-service:3007
+  REPORTING_URL: http://reporting-service:3008
+  AI_URL: http://ai-service:3009

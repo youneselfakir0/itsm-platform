@@ -108,7 +108,17 @@ itsm-platform/
 ```
 
 ## Roadmap
-- **P0** : monorepo scaffold, auth + ticketing + gateway, DB migrations, portail minimal
-- **P1** : cmdb + catalog + automation (connecteur AD), console tech
-- **P2** : events + reporting + ai-service (classification + copilote)
-- **P3** : intégrations Azure/VMware/Zabbix, console admin, K8s prod
+- **P0** ✅ : monorepo, auth + ticketing + gateway, migrations, RBAC
+- **P1** ✅ : cmdb + catalog + automation (connecteur AD dry-run + comptes protégés)
+- **P2** ✅ : events (webhook + corrélation) + reporting + ai-service (classification, suggestions, scripts, logs)
+- **P3** ✅ : frontend React+Tailwind (portail/tech/admin unifiés par RBAC), Dockerfiles, manifests K8s
+
+## Démarrage rapide (dev)
+```bash
+docker --context twisterlab-ubuntu compose -p itsm -f infra/docker-compose.yml up -d
+npm install
+export DATABASE_URL='postgres://itsm:itsm_dev_pw@192.168.0.30:5433/itsm'
+bash scripts/dev-up.sh          # migre + démarre les 10 services
+cd frontend/webapp && npm run dev   # UI sur :5173 (proxy /api -> :8080)
+```
+Voir `docs/API.md` pour la référence API complète.
