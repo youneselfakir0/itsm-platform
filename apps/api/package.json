@@ -14,6 +14,8 @@
     "@nestjs/platform-express": "^10.4.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
+    "ldapts": "^7.4.0",
+    "otplib": "^12.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

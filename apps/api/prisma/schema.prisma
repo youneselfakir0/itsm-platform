@@ -59,10 +59,15 @@ model users_auth {
   is_active      Boolean          @default(true)
   created_at     DateTime         @default(now()) @db.Timestamptz(6)
   updated_at     DateTime         @default(now()) @db.Timestamptz(6)
+  mfa_secret     String?
+  mfa_enabled    Boolean          @default(false)
+  external_dn    String?
+  last_synced_at DateTime?        @db.Timestamptz(6)
   refresh_tokens refresh_tokens[]
   roles          roles?           @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([email], map: "idx_users_auth_email")
+  @@index([source], map: "idx_users_auth_source")
   @@schema("auth")
 }
 
@@ -313,6 +318,7 @@ model users {
   phone        String?
   created_at   DateTime       @default(now()) @db.Timestamptz(6)
   updated_at   DateTime       @default(now()) @db.Timestamptz(6)
+  title        String?
   team_members team_members[]
 
   @@schema("users")
