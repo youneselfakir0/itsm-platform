@@ -1,0 +1,6 @@
+{
+  "name": "@itsm/reporting-service",
+  "version": "0.1.0",
+  "scripts": { "start": "node src/index.js" },
+  "dependencies": { "@itsm/svc-kit": "0.1.0" }
+}

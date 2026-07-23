@@ -1,0 +1,10 @@
+{
+  "name": "@itsm/svc-kit",
+  "version": "0.1.0",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0"
+  }
+}

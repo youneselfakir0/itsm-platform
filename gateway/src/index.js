@@ -12,6 +12,7 @@ const services = [
   { filter: '/api/tickets', target: process.env.TICKETING_URL || 'http://localhost:3003' },
   { filter: '/api/cmdb', target: process.env.CMDB_URL || 'http://localhost:3004' },
   { filter: '/api/automation', target: process.env.AUTOMATION_URL || 'http://localhost:3005' },
+  { filter: '/api/events', target: process.env.EVENTS_URL || 'http://localhost:3006' },
   { filter: '/api/catalog', target: process.env.CATALOG_URL || 'http://localhost:3007' },
   { filter: '/api/reports', target: process.env.REPORTING_URL || 'http://localhost:3008' },
   { filter: '/api/ai', target: process.env.AI_URL || 'http://localhost:3009' },
