@@ -11,11 +11,12 @@ import { EventsModule } from './events/events.module';
 import { ReportingModule } from './reporting/reporting.module';
 import { AiModule } from './ai/ai.module';
 import { WorkflowModule } from './workflow/workflow.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     CoreModule, IdentityModule, TicketingModule, CmdbModule, CatalogModule,
-    AutomationModule, EventsModule, ReportingModule, AiModule, WorkflowModule,
+    AutomationModule, EventsModule, ReportingModule, AiModule, WorkflowModule, NotificationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
 })

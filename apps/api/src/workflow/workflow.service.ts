@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../core/prisma.service';
+import { NotificationService } from '../notifications/notification.service';
 
 interface ApprovalLevel { level: number; kind: string; due_mins: number; }
 type Stage = 'submitted' | 'pending_approval' | 'approved' | 'rejected' | 'fulfilled';
@@ -8,7 +9,7 @@ function minsFromNow(m: number) { return new Date(Date.now() + m * 60_000); }
 
 @Injectable()
 export class WorkflowService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notif?: NotificationService) {}
 
   /** Date d'échéance SLA pour une priorité donnée. */
   async slaDue(priority: string) {
@@ -82,6 +83,9 @@ export class WorkflowService {
     const remaining = req.approvals.filter((a) => a.level !== level && !a.decision);
     if (remaining.length) {
       await this.prisma.requests.update({ where: { id: requestId }, data: { current_stage: 'pending_approval' } });
+      const item = await this.prisma.items.findUnique({ where: { id: req.item_id } });
+      const notif = (this as any).notif as NotificationService | undefined;
+      if (notif) notif.approvalRequired({ id: requestId, item: item?.name ?? 'demande', level: remaining[0].level, kind: remaining[0].kind }).catch?.(() => {});
       return { stage: 'pending_approval', waiting_level: remaining[0].level };
     }
     const updated = await this.prisma.requests.update({ where: { id: requestId }, data: { current_stage: 'approved', status: 'approved' } });
@@ -108,6 +112,8 @@ export class WorkflowService {
       let escalatedAt = t.escalated_at;
       if (status !== t.sla_status && !t.escalated_at) {
         escalatedAt = now; escalated++;
+        const notif = (this as any).notif as NotificationService | undefined;
+        if (notif) notif.slaBreach({ number: Number(t.number), title: t.title, priority: t.priority, sla_status: status }).catch?.(() => {});
       }
       await this.prisma.tickets.update({ where: { id: t.id }, data: { sla_status: status, escalated_at: escalatedAt } });
     }
