@@ -4,25 +4,33 @@ import { api } from '../api.js';
 const PRIO_COLORS = { p1: 'bg-red-500', p2: 'bg-orange-500', p3: 'bg-yellow-500', p4: 'bg-slate-500' };
 const STATUSES = ['new', 'assigned', 'in_progress', 'pending', 'resolved', 'closed'];
 
+const EMPTY_FORM = {
+  type: 'incident', title: '', description: '', priority: 'p3', category: '',
+  is_existing: false, related_ticket_number: '', first_seen_on: new Date().toISOString().slice(0, 10),
+  users_affected: '1', error_message: '', asset_tag: '', callback_number: '',
+  troubleshooting: '', root_cause: '', resolution_notes: '', kb_article: '',
+};
+
 export default function Tickets({ user }) {
   const [tickets, setTickets] = useState([]);
   const [sel, setSel] = useState(null);
-  const [form, setForm] = useState({ type: 'incident', title: '', description: '', priority: 'p3', category: '' });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
   const [suggest, setSuggest] = useState(null);
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
   const load = () => { api('/tickets').then(setTickets).catch(console.error); };
   useEffect(load, []);
 
   const create = async (e) => {
     e.preventDefault();
-    const body = { ...form, category: form.category || undefined };
+    const body = Object.fromEntries(Object.entries(form).filter(([, v]) => v !== '' && v !== false));
     const t = await api('/tickets', { method: 'POST', body });
     // classification IA automatique (ne remplit que ce que l'utilisateur n'a pas fixé)
     api('/ai/classify', { method: 'POST', body: { ticket_id: t.id, title: t.title, description: t.description } })
       .then((c) => api(`/tickets/${t.id}`, { method: 'PATCH', body: { category: form.category || c.category } }))
       .then(load).catch(() => {});
-    setShowForm(false); setForm({ type: 'incident', title: '', description: '', priority: 'p3', category: '' });
+    setShowForm(false); setForm(EMPTY_FORM);
     load();
   };
 
@@ -69,10 +77,49 @@ export default function Tickets({ user }) {
               </select>
             </div>
             <input required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Titre"
-              value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              value={form.title} onChange={set('title')} />
             <textarea required className="w-full bg-slate-800 rounded-lg px-3 py-2" rows={3}
-              placeholder="Description : impact, contexte, depuis quand…"
-              value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              placeholder="Description du problème par l'utilisateur : impact, contexte…"
+              value={form.description} onChange={set('description')} />
+
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <label className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
+                <input type="checkbox" checked={form.is_existing} onChange={set('is_existing')} />
+                Problème existant ?
+              </label>
+              {form.is_existing && (
+                <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="N° ticket existant"
+                  value={form.related_ticket_number} onChange={set('related_ticket_number')} />
+              )}
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-slate-500 whitespace-nowrap">1ère occurrence</label>
+                <input type="date" className="flex-1 bg-slate-800 rounded-lg px-3 py-2"
+                  value={form.first_seen_on} onChange={set('first_seen_on')} />
+              </div>
+              <select className="bg-slate-800 rounded-lg px-3 py-2" value={form.users_affected} onChange={set('users_affected')}>
+                {['1', '3', '5', '10+'].map((n) => <option key={n} value={n}>{n} utilisateur(s) affecté(s)</option>)}
+              </select>
+              <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="Actif / N° de série"
+                value={form.asset_tag} onChange={set('asset_tag')} />
+              <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="N° de rappel"
+                value={form.callback_number} onChange={set('callback_number')} />
+            </div>
+            <input className="w-full bg-slate-800 rounded-lg px-3 py-2 text-sm" placeholder="Message / code d'erreur"
+              value={form.error_message} onChange={set('error_message')} />
+
+            <details className="text-sm">
+              <summary className="cursor-pointer text-slate-400">Champs technicien (dépannage, cause racine, résolution, KB)</summary>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Étapes de dépannage effectuées"
+                  value={form.troubleshooting} onChange={set('troubleshooting')} />
+                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Cause racine identifiée"
+                  value={form.root_cause} onChange={set('root_cause')} />
+                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Résolution / prochaines étapes"
+                  value={form.resolution_notes} onChange={set('resolution_notes')} />
+              </div>
+              <input className="w-full bg-slate-800 rounded-lg px-3 py-2 mt-2" placeholder="Article KB / Confluence utilisé"
+                value={form.kb_article} onChange={set('kb_article')} />
+            </details>
             <button className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Créer</button>
           </form>
         )}
@@ -101,6 +148,17 @@ export default function Tickets({ user }) {
             <p>Demandeur: <span className="text-cyan-300">{sel.requester_name || sel.requester_id}</span></p>
             <p>Assigné à: <span className="text-cyan-300">{sel.assignee_name || 'non assigné'}</span></p>
             <p>Créé: {new Date(sel.created_at).toLocaleString('fr-FR')}</p>
+            <p className="border-t border-slate-800 pt-1">{sel.is_existing ? 'Problème existant' : 'Nouveau'}
+              {sel.is_existing && sel.related_ticket_number ? ` · lié au #${sel.related_ticket_number}` : ''}
+              {sel.first_seen_on ? ` · 1ère occurrence: ${sel.first_seen_on}` : ''}
+              {sel.users_affected ? ` · ${sel.users_affected} affecté(s)` : ''}</p>
+            {sel.asset_tag && <p>Actif / N° série: <span className="text-slate-300">{sel.asset_tag}</span></p>}
+            {sel.callback_number && <p>N° de rappel: <span className="text-slate-300">{sel.callback_number}</span></p>}
+            {sel.error_message && <p>Erreur: <span className="text-slate-300">{sel.error_message}</span></p>}
+            {sel.kb_article && <p>KB: <span className="text-cyan-400">{sel.kb_article}</span></p>}
+            {sel.troubleshooting && <p>Dépannage: <span className="text-slate-300 whitespace-pre-wrap">{sel.troubleshooting}</span></p>}
+            {sel.root_cause && <p>Cause racine: <span className="text-slate-300">{sel.root_cause}</span></p>}
+            {sel.resolution_notes && <p>Résolution: <span className="text-slate-300 whitespace-pre-wrap">{sel.resolution_notes}</span></p>}
           </div>
           <div className="flex flex-wrap gap-1">
             {STATUSES.map((s) => (

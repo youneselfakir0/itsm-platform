@@ -13,15 +13,26 @@ export class TicketsService {
     }
   }
 
-  async create(user: JwtUser, dto: { type?: string; title: string; description?: string; priority?: string; category?: string }) {
+  private static readonly DETAIL_FIELDS = [
+    'is_existing', 'related_ticket_number', 'first_seen_on', 'users_affected',
+    'error_message', 'asset_tag', 'callback_number',
+    'troubleshooting', 'root_cause', 'resolution_notes', 'kb_article',
+  ] as const;
+
+  async create(user: JwtUser, dto: Record<string, unknown> & { title: string }) {
     this.can(user, 'ticket:write');
+    const cols = ['type', 'title', 'description', 'priority', 'category', 'requester_id'];
+    const vals: unknown[] = [
+      dto.type ?? 'incident', dto.title, dto.description, dto.priority ?? 'p3', dto.category, user.sub,
+    ];
+    for (const k of TicketsService.DETAIL_FIELDS) {
+      if (dto[k] !== undefined && dto[k] !== '') { cols.push(k); vals.push(dto[k]); }
+    }
     const r = await this.db.query(
-      `INSERT INTO ticketing.tickets (type, title, description, priority, category, requester_id)
-       VALUES (COALESCE($1,'incident'), $2, $3, COALESCE($4,'p3'), $5, $6)
-       RETURNING *`,
-      [dto.type, dto.title, dto.description, dto.priority, dto.category, user.sub],
+      `INSERT INTO ticketing.tickets (${cols.join(',')})
+       VALUES (${cols.map((_, i) => `$${i + 1}`).join(',')}) RETURNING *`,
+      vals,
     );
-    // TODO P2: publish ticket.created sur NATS
     return r.rows[0];
   }
 
@@ -64,11 +75,12 @@ export class TicketsService {
     return { ...t.rows[0], comments: comments.rows, history: history.rows };
   }
 
-  async update(user: JwtUser, id: string, dto: Partial<{ status: string; priority: string; assignee_id: string; category: string; title: string; description: string }>) {
+  async update(user: JwtUser, id: string, dto: Record<string, unknown>) {
     this.can(user, dto.assignee_id !== undefined ? 'ticket:assign' : 'ticket:write');
     const before = (await this.db.query(`SELECT * FROM ticketing.tickets WHERE id=$1`, [id])).rows[0];
     if (!before) throw new NotFoundException();
-    const allowed = ['status', 'priority', 'assignee_id', 'category', 'title', 'description'] as const;
+    const allowed = ['status', 'priority', 'assignee_id', 'category', 'title', 'description',
+      ...TicketsService.DETAIL_FIELDS] as readonly string[];
     const sets: string[] = [];
     const params: unknown[] = [];
     for (const k of allowed) {

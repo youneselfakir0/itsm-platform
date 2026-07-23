@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Report Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: auto;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: auto;
+            background: linear-gradient(315deg, rgba(101,0,94,1) 3%, rgba(60,132,206,1) 38%, rgba(48,238,226,1) 68%, rgba(255,25,25,1) 98%);
+            animation: gradient 15s ease infinite;
+            background-size: 400% 400%;
+            background-attachment: fixed;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .wave {
+            background: rgb(255 255 255 / 25%);
+            border-radius: 1000% 1000% 0 0;
+            position: fixed;
+            width: 200%;
+            height: 12em;
+            animation: wave 10s -3s linear infinite;
+            transform: translate3d(0, 0, 0);
+            opacity: 0.8;
+            bottom: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .wave:nth-of-type(2) {
+            bottom: -1.25em;
+            animation: wave 18s linear reverse infinite;
+            opacity: 0.8;
+        }
+
+        .wave:nth-of-type(3) {
+            bottom: -2.5em;
+            animation: wave 20s -1s reverse infinite;
+            opacity: 0.9;
+        }
+
+        @keyframes wave {
+            2% { transform: translateX(1); }
+            25% { transform: translateX(-25%); }
+            50% { transform: translateX(-50%); }
+            75% { transform: translateX(-25%); }
+            100% { transform: translateX(1); }
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Issue Report Form</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <!-- Add more navbar items if needed -->
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Language <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="setLanguage('French')">FR</a></li>
+                        <li><a href="#" onclick="setLanguage('English')">ENG</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <form id="issueForm">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label id="problemCategoryLabel">Problem Category:</label><br>
+                    <input type="radio" id="problemBasic" name="problemCategory" value="Basic" checked>
+                    <label for="problemBasic" id="problemBasicLabel">Basic</label><br>
+                    <input type="radio" id="problemCellular" name="problemCategory" value="Cellular">
+                    <label for="problemCellular" id="problemCellularLabel">Cellular</label>
+                </div>
+                <div class="form-group col-md-4">
+                    <label id="languageCallLabel">Language of call:</label><br>
+                    <input type="radio" id="languageEnglish" name="language" value="English" checked>
+                    <label for="languageEnglish" id="languageEnglishLabel">English</label><br>
+                    <input type="radio" id="languageFrench" name="language" value="French">
+                    <label for="languageFrench" id="languageFrenchLabel">French</label>
+                </div>
+                <div class="form-group col-md-4" id="basicFields">
+                    <label for="assetSerial" id="assetSerialLabel">Asset (PSPC/ INFC) / Serial Number (SSC)</label>
+                    <textarea class="form-control" id="assetSerial" rows="1"></textarea>
+                    <label for="vpnNetwork" id="vpnNetworkLabel">VPN or Core network</label>
+                    <select class="form-control" id="vpnNetwork">
+                        <option value="VPN" selected>VPN</option>
+                        <option value="Core network">Core network</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-4 hidden" id="cellularFields">
+                    <label for="imei" id="imeiLabel">IMEI</label>
+                    <textarea class="form-control" id="imei" rows="1"></textarea>
+                    <label for="callbackNumber" id="callbackNumberLabel">Callback number</label>
+                    <textarea class="form-control" id="callbackNumber" rows="1"></textarea>
+                    <label for="deviceModel" id="deviceModelLabel">Device model</label>
+                    <textarea class="form-control" id="deviceModel" rows="1"></textarea>
+                    <label for="cellularOS" id="cellularOSLabel">Cellular OS version</label>
+                    <textarea class="form-control" id="cellularOS" rows="1"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label id="issueStatusLabel">IS THIS A NEW OR EXISTING ISSUE:</label><br>
+                    <input type="radio" id="issueNew" name="issueStatus" value="New" checked>
+                    <label for="issueNew" id="issueNewLabel">NEW</label><br>
+                    <input type="radio" id="issueExisting" name="issueStatus" value="Existing">
+                    <label for="issueExisting" id="issueExistingLabel">EXISTING</label>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="issueEncountered" id="issueEncounteredLabel">WHEN WAS THE ISSUE FIRST ENCOUNTERED:</label>
+                    <input type="date" class="form-control" id="issueEncountered" />
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="usersAffected" id="usersAffectedLabel">NUMBER OF USERS AFFECTED</label>
+                    <select class="form-control" id="usersAffected">
+                        <option value="1">1</option>
+                        <option value="3">3</option>
+                        <option value="5">5</option>
+                        <option value="10+">10+</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="referenceNumberField" class="hidden form-group">
+                <label for="referenceNumber" id="referenceNumberLabel">Existing Ticket#</label>
+                <textarea class="form-control" id="referenceNumber" rows="1"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="troubleshootingSteps" id="troubleshootingStepsLabel">Document steps taken to troubleshoot EUs issue</label>
+                    <textarea class="form-control" id="troubleshootingSteps" rows="4"></textarea>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="rootCause" id="rootCauseLabel">What is the root cause found after troubleshooting</label>
+                    <textarea class="form-control" id="rootCause" rows="4"></textarea>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="resolution" id="resolutionLabel">Resolution or next steps</label>
+                    <textarea class="form-control" id="resolution" rows="4"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="appLogin" id="appLoginLabel">Connexion à l’application (si applicable)</label>
+                    <textarea class="form-control" id="appLogin" rows="1"></textarea>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="userName" id="userNameLabel">Nom d’utilisateur</label>
+                    <textarea class="form-control" id="userName" rows="1"></textarea>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="mailingAddress" id="mailingAddressLabel">End User's Mailing Address (If KB states required)</label>
+                    <textarea class="form-control" id="mailingAddress" rows="1"></textarea>
+                </div>
+            </div>
+
+            <button type="button" id="generateTextBtn" class="btn btn-primary">Generate text</button>
+            <button type="button" id="copyTextBtn" class="btn btn-secondary">Copy text</button>
+            <button type="button" id="openCopilotBtn" class="btn btn-info">Open Copilot</button>
+
+            <div class="form-group mt-3">
+                <label for="generatedText">Generated Text:</label>
+                <textarea class="form-control" id="generatedText" rows="10" readonly></textarea>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const labels = {
+            English: {
+                problemCategoryLabel: 'Problem Category:',
+                problemBasicLabel: 'Basic',
+                problemCellularLabel: 'Cellular',
+                languageCallLabel: 'Language of call:',
+                languageEnglishLabel: 'English',
+                languageFrenchLabel: 'French',
+                assetSerialLabel: 'Asset (PSPC/ INFC) / Serial Number (SSC)',
+                vpnNetworkLabel: 'VPN or Core network',
+                imeiLabel: 'IMEI',
+                callbackNumberLabel: 'Callback number',
+                deviceModelLabel: 'Device model',
+                cellularOSLabel: 'Cellular OS version',
+                issueStatusLabel: 'IS THIS A NEW OR EXISTING ISSUE:',
+                issueNewLabel: 'NEW',
+                issueExistingLabel: 'EXISTING',
+                issueEncounteredLabel: 'WHEN WAS THE ISSUE FIRST ENCOUNTERED:',
+                usersAffectedLabel: 'NUMBER OF USERS AFFECTED',
+                referenceNumberLabel: 'Existing Ticket#',
+                troubleshootingStepsLabel: 'Document steps taken to troubleshoot EUs issue',
+                rootCauseLabel: 'What is the root cause found after troubleshooting',
+                resolutionLabel: 'Resolution or next steps',
+                appLoginLabel: 'Application login (if applicable)',
+                userNameLabel: 'User Name',
+                mailingAddressLabel: 'End User\'s Mailing Address (If KB states required)'
+            },
+            French: {
+                problemCategoryLabel: 'Catégorie du problème :',
+                problemBasicLabel: 'Basique',
+                problemCellularLabel: 'Cellulaire',
+                languageCallLabel: 'Langue de l’appel :',
+                languageEnglishLabel: 'Anglais',
+                languageFrenchLabel: 'Français',
+                assetSerialLabel: 'Actif (PSPC/ INFC) / Numéro de série (SSC)',
+                vpnNetworkLabel: 'VPN ou réseau central',
+                imeiLabel: 'IMEI',
+                callbackNumberLabel: 'Numéro de rappel',
+                deviceModelLabel: 'Modèle de l’appareil',
+                cellularOSLabel: 'Version de l’OS cellulaire',
+                issueStatusLabel: 'EST-CE UN NOUVEAU PROBLÈME OU UN PROBLÈME EXISTANT :',
+                issueNewLabel: 'NOUVEAU',
+                issueExistingLabel: 'EXISTANT',
+                issueEncounteredLabel: 'QUAND LE PROBLÈME A-T-IL ÉTÉ RENCONTRÉ POUR LA PREMIÈRE FOIS :',
+                usersAffectedLabel: 'NOMBRE D’UTILISATEURS AFFECTÉS',
+                referenceNumberLabel: 'Numéro de ticket existant',
+                troubleshootingStepsLabel: 'Documenter les étapes prises pour résoudre le problème de l’UF',
+                rootCauseLabel: 'Quelle est la cause fondamentale trouvée après le dépannage',
+                resolutionLabel: 'Résolution ou prochaines étapes',
+                appLoginLabel: 'Connexion à l’application (si applicable)',
+                userNameLabel: 'Nom d’utilisateur',
+                mailingAddressLabel: 'Adresse postale de l’utilisateur (Si la BC l’indique)'
+            }
+        };
+
+        function setLanguage(language) {
+            const selectedLabels = labels[language];
+            for (const [key, value] of Object.entries(selectedLabels)) {
+                document.getElementById(key).textContent = value;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Set default date to today
+            const todayDate = new Date().toISOString().split('T')[0];
+            document.getElementById('issueEncountered').value = todayDate;
+
+            // Handle problem category changes
+            const problemCategoryRadios = document.querySelectorAll('input[name="problemCategory"]');
+            problemCategoryRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'Basic') {
+                        document.getElementById('basicFields').classList.remove('hidden');
+                        document.getElementById('cellularFields').classList.add('hidden');
+                    } else if (radio.value === 'Cellular') {
+                        document.getElementById('basicFields').classList.add('hidden');
+                        document.getElementById('cellularFields').classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Handle issue status changes
+            const issueStatusRadios = document.querySelectorAll('input[name="issueStatus"]');
+            issueStatusRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'Existing') {
+                        document.getElementById('referenceNumberField').classList.remove('hidden');
+                    } else {
+                        document.getElementById('referenceNumberField').classList.add('hidden');
+                    }
+                });
+            });
+
+            // Handle text generation
+            document.getElementById('generateTextBtn').addEventListener('click', () => {
+                const selectedLanguage = document.querySelector('input[name="language"]:checked').value;
+                const selectedProblemCategory = document.querySelector('input[name="problemCategory"]:checked').value;
+
+                let generatedText = '';
+                const templateDate = 'June 1st 2023';
+
+                if (selectedLanguage === 'English') {
+                    if (selectedProblemCategory === 'Basic') {
+                        generatedText = `
+Language of call : English[x]; French[]
+Asset (PSPC/ INFC) :
+Serial Number (SSC) :
+Callback number :
+VPN or Core network :
+-------------------------------------------------
+IS THIS A NEW OR EXISTING ISSUE: NEW[] ; EXISTING[]
+Existing Ticket# :
+WHEN WAS THE ISSUE FIRST ENCOUNTERED :
+NUMBER OF USERS AFFECTED :
+-------------------------------------------------
+EU description of problem :
+
+Error message/ code :
+
+Document steps taken to troubleshoot EUs issue :
+
+What is the root cause found after troubleshooting :
+
+Resolution or next steps :
+
+Confluence Article used to support EU :
+
+IP address (if network related) :
+Application login (if applicable) :
+End User's Mailing Address (If KB states required):
+-------------------------------------------------
+English - Basic EUSD template ${templateDate}.
+`;
+                    } else if (selectedProblemCategory === 'Cellular') {
+                        generatedText = `
+EU language : English[x]; French[]
+IMEI :
+Callback number :
+Device Model:
+Cellular OS Version:
+-------------------------------------------------
+IS THIS A NEW OR EXISTING ISSUE: NEW[] ; EXISTING[]
+Existing Ticket# :
+WHEN WAS THE ISSUE FIRST ENCOUNTERED :
+NUMBER OF USERS AFFECTED :
+-------------------------------------------------
+EU description of problem :
+
+Error message/ code :
+
+Document steps taken to troubleshoot EUs issue :
+
+What is the root cause found after troubleshooting :
+
+Resolution or next steps :
+
+Confluence Article used to support EU :
+
+IP address (if network related) :
+Application login (if applicable) :
+End User's Mailing Address (If KB states required):
+-------------------------------------------------
+English - Cellulaire EUSD template ${templateDate}.
+`;
+                    }
+                } else if (selectedLanguage === 'French') {
+                    if (selectedProblemCategory === 'Basic') {
+                        generatedText = `
+Langue de l'appel : Anglais[]; Français[x]
+Actif (PSPC/ INFC) :
+Numéro de série (SSC) :
+Numéro de rappel :
+VPN ou réseau central :
+-------------------------------------------------
+EST-CE UN NOUVEAU PROBLÈME OU UN PROBLÈME EXISTANT : NOUVEAU[] ; EXISTANT[]
+Numéro de ticket existant :
+QUAND LE PROBLÈME A-T-IL ÉTÉ RENCONTRÉ POUR LA PREMIÈRE FOIS :
+NOMBRE D'UTILISATEURS AFFECTÉS :
+-------------------------------------------------
+Description du problème par l'UF :
+
+Message d'erreur / code :
+
+Documenter les étapes prises pour résoudre le problème de l'UF :
+
+Quelle est la cause fondamentale trouvée après le dépannage :
+
+Résolution ou prochaines étapes :
+
+Article de Confluence utilisé pour aider l'UF :
+
+Adresse IP (si liée au réseau) :
+Connexion à l'application (si applicable) :
+Adresse postale de l'utilisateur (Si la BC l'indique):
+-------------------------------------------------
+French - Basic EUSD template ${templateDate}.
+`;
+                    } else if (selectedProblemCategory === 'Cellular') {
+                        generatedText = `
+Langue de l'UF : Anglais[]; Français[x]
+IMEI :
+Numéro de rappel :
+Modèle de l'appareil :
+Version de l'OS cellulaire :
+-------------------------------------------------
+EST-CE UN NOUVEAU PROBLÈME OU UN PROBLÈME EXISTANT : NOUVEAU[] ; EXISTANT[]
+Numéro de ticket existant :
+QUAND LE PROBLÈME A-T-IL ÉTÉ RENCONTRÉ POUR LA PREMIÈRE FOIS :
+NOMBRE D'UTILISATEURS AFFECTÉS :
+-------------------------------------------------
+Description du problème par l'UF :
+
+Message d'erreur / code :
+
+Documenter les étapes prises pour résoudre le problème de l'UF :
+
+Quelle est la cause fondamentale trouvée après le dépannage :
+
+Résolution ou prochaines étapes :
+
+Article de Confluence utilisé pour aider l'UF :
+
+Adresse IP (si liée au réseau) :
+Connexion à l'application (si applicable) :
+Adresse postale de l'utilisateur (Si la BC l'indique):
+--------------------------------------------------------
+ French  - Cellulaire EUSD template ${templateDate}.
+`;
+                    }
+                }
+
+                // Display generated text in the textarea
+                document.getElementById('generatedText').value = generatedText;
+            });
+
+            // Handle text copying
+            document.getElementById('copyTextBtn').addEventListener('click', () => {
+                const generatedTextArea = document.getElementById('generatedText');
+                generatedTextArea.select();
+                document.execCommand('copy');
+                alert('Text copied to clipboard!');
+            });
+
+            // Handle opening Copilot link
+            document.getElementById('openCopilotBtn').addEventListener('click', () => {
+                window.open("https://www.bing.com/chat?q=Microsoft+Copilot&FORM=hpcodx", "_blank");
+            });
+
+            // Handle language selection
+            const languageLinks = document.querySelectorAll('.dropdown-menu a');
+            languageLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const selectedLanguage = link.textContent.trim();
+                    setLanguage(selectedLanguage);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
