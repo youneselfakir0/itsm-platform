@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../core/prisma.service';
 import { JwtUser } from '../core/auth.guard';
+import { WorkflowService } from '../workflow/workflow.service';
 
 const DETAIL_FIELDS = [
   'is_existing', 'related_ticket_number', 'first_seen_on', 'users_affected',
@@ -10,7 +11,7 @@ const DETAIL_FIELDS = [
 
 @Injectable()
 export class TicketingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private wf?: WorkflowService) {}
 
   private async names(ids: string[]): Promise<Record<string, string>> {
     const clean = [...new Set(ids.filter(Boolean))];
@@ -35,7 +36,11 @@ export class TicketingService {
           : dto[k];
       }
     }
-    return this.prisma.tickets.create({ data });
+    const created = await this.prisma.tickets.create({ data });
+    // SLA : attache la politique selon la priorité
+    const wf = (this as any).wf as WorkflowService | undefined;
+    if (wf) await wf.attachToTicket(created.id, created.priority);
+    return created;
   }
 
   async list(user: JwtUser, q: { status?: string; mine?: string; limit?: string }) {
