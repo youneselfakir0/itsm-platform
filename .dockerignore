@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+dist
+**/dist
+*.log
+.env
+.git
+.gitignore
+Dockerfile
+.dockerignore
+coverage
+k8s
+nginx/certs
+**/e2e_*.js

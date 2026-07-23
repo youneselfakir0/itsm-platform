@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: twisteritsm
+  labels:
+    app.kubernetes.io/part-of: twisteritsm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itsm-config
+  namespace: twisteritsm
+data:
+  DATABASE_URL: "postgres://itsm:${POSTGRES_PASSWORD}@postgres:5432/itsm"
+  AI_API_URL: "http://192.168.0.20:11434"
+  AI_MODEL: "qwen3:8b"
+  AI_CODER_MODEL: "qwen2.5-coder:latest"
+  SMTP_FROM: "itsm@twisterlab.local"
+  NOTIFY_EMAIL: "ops@twisterlab.local"
+  SLA_TIMER_MS: "60000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: itsm-secrets
+  namespace: twisteritsm
+type: Opaque
+stringData:
+  # À générer : openssl rand -base64 48
+  JWT_SECRET: "change-me-in-prod"
+  POSTGRES_PASSWORD: "itsm_dev_pw"
+  SMTP_HOST: ""
+  SMTP_PORT: "587"
+  SMTP_USER: ""
+  SMTP_PASS: ""
+  TEAMS_WEBHOOK: ""

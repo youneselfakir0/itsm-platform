@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itsm-nginx
+  namespace: twisteritsm
+  labels:
+    app: itsm-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: itsm-nginx
+  template:
+    metadata:
+      labels:
+        app: itsm-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: registry.twisterlab.local/twisteritsm/nginx:latest
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/nginx/certs
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: itsm-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: itsm-nginx
+  namespace: twisteritsm
+spec:
+  type: ClusterIP
+  selector:
+    app: itsm-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
