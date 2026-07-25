@@ -56,6 +56,15 @@ export default function Tickets({ user }) {
           <h2 className="text-2xl font-bold">{t('tickets.title')}</h2>
           <button onClick={() => setShowForm(!showForm)} className="bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-lg text-sm font-semibold">+ {t('tickets.new')}</button>
         </div>
+        <div className="bg-surface border border-cyan-800/40 rounded-xl p-3 mb-4 flex items-center gap-4 text-sm" aria-label={t('tickets.itilFlow')}>
+          <span className="font-semibold text-cyan-300">🛡 {t('tickets.itilFlow')}</span>
+          <span className="flex items-center gap-1"><b className="w-5 h-5 rounded-full bg-cyan-600 text-center text-xs">1</b> {t('itil.step1')}</span>
+          <span aria-hidden>→</span>
+          <span className="flex items-center gap-1"><b className="w-5 h-5 rounded-full bg-violet-600 text-center text-xs">2</b> {t('itil.step2')}</span>
+          <span aria-hidden>→</span>
+          <span className="flex items-center gap-1"><b className="w-5 h-5 rounded-full bg-emerald-600 text-center text-xs">3</b> {t('itil.step3')}</span>
+          <span className="ml-auto text-muted">{tickets.filter((x) => x.category).length}/{tickets.length} {t('itil.classified')}</span>
+        </div>
         {showForm && (
           <form onSubmit={create} className="bg-surface border border-surface rounded-xl p-4 mb-4 space-y-3" aria-label={t('tickets.form.title')}>
             <div className="grid grid-cols-3 gap-2">
