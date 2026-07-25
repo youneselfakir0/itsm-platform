@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { useI18n } from '../i18n.js';
 
 export default function Catalog({ user }) {
+  const { t } = useI18n();
   const [items, setItems] = useState([]);
   const [requests, setRequests] = useState([]);
   const [sel, setSel] = useState(null);
@@ -27,7 +29,7 @@ export default function Catalog({ user }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Catalogue de services</h2>
+      <h2 className="text-2xl font-bold">{t('catalog.title')}</h2>
       <div className="grid grid-cols-3 gap-4">
         {items.map((i) => (
           <div key={i.id} onClick={() => { setSel(i); setFormData({}); }}
@@ -35,7 +37,7 @@ export default function Catalog({ user }) {
             <p className="text-xs text-cyan-500">{i.category}</p>
             <p className="font-semibold">{i.name}</p>
             <p className="text-sm text-slate-400">{i.description}</p>
-            {i.requires_approval && <p className="text-xs text-amber-400 mt-1">⚠ approbation requise</p>}
+            {i.requires_approval && <p className="text-xs text-amber-400 mt-1">⚠ {t('catalog.approvalRequired')}</p>}
           </div>
         ))}
       </div>
@@ -59,13 +61,13 @@ export default function Catalog({ user }) {
             </div>
           ))}
           <div className="flex gap-2">
-            <button className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Soumettre</button>
-            <button type="button" onClick={() => setSel(null)} className="bg-slate-800 px-4 py-2 rounded-lg text-sm">Annuler</button>
+            <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">{t('catalog.submit')}</button>
+            <button type="button" onClick={() => setSel(null)} className="bg-slate-800 px-4 py-2 rounded-lg text-sm">{t('catalog.cancel')}</button>
           </div>
         </form>
       )}
       <div>
-        <h3 className="font-bold mb-2">Demandes</h3>
+        <h3 className="font-bold mb-2">{t('catalog.requests')}</h3>
         <div className="space-y-2">
           {requests.map((r) => (
             <div key={r.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
@@ -73,8 +75,8 @@ export default function Catalog({ user }) {
               <span className={`text-xs px-2 py-1 rounded ${r.status === 'approved' ? 'bg-green-900 text-green-300' : r.status === 'rejected' ? 'bg-red-900 text-red-300' : 'bg-slate-800'}`}>{r.status}</span>
               {canApprove && r.status === 'pending_approval' && (
                 <>
-                  <button onClick={() => decide(r.id, 'approved')} className="text-xs bg-green-700 px-2 py-1 rounded">Approuver</button>
-                  <button onClick={() => decide(r.id, 'rejected')} className="text-xs bg-red-700 px-2 py-1 rounded">Rejeter</button>
+                  <button onClick={() => decide(r.id, 'approved')} className="text-xs bg-green-700 px-2 py-1 rounded">{t('catalog.approve')}</button>
+                  <button onClick={() => decide(r.id, 'rejected')} className="text-xs bg-red-700 px-2 py-1 rounded">{t('catalog.reject')}</button>
                 </>
               )}
             </div>
