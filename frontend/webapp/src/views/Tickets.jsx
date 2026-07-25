@@ -54,33 +54,48 @@ export default function Tickets({ user }) {
           <button onClick={() => setShowForm(!showForm)} className="bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-lg text-sm font-semibold">+ Nouveau</button>
         </div>
         {showForm && (
-          <form onSubmit={create} className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-3">
+          <form onSubmit={create} className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-3" aria-label="Nouveau ticket">
             <div className="grid grid-cols-3 gap-2">
-              <select className="bg-slate-800 rounded-lg px-3 py-2 text-sm" value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="incident">Incident</option>
-                <option value="request">Demande</option>
-                <option value="problem">Problème</option>
-                <option value="change">Changement</option>
-              </select>
-              <select className="bg-slate-800 rounded-lg px-3 py-2 text-sm" value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}>
-                <option value="p1">P1 — Critique</option>
-                <option value="p2">P2 — Haute</option>
-                <option value="p3">P3 — Normale</option>
-                <option value="p4">P4 — Basse</option>
-              </select>
-              <select className="bg-slate-800 rounded-lg px-3 py-2 text-sm" value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                <option value="">Catégorie (auto IA)</option>
-                {['network', 'account', 'infrastructure', 'messaging', 'application', 'general'].map((c) => <option key={c}>{c}</option>)}
-              </select>
+              <div className="space-y-1">
+                <label htmlFor="t-type" className="block text-xs text-slate-400">Type</label>
+                <select id="t-type" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                  <option value="incident">Incident</option>
+                  <option value="request">Demande</option>
+                  <option value="problem">Problème</option>
+                  <option value="change">Changement</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="t-priority" className="block text-xs text-slate-400">Priorité</label>
+                <select id="t-priority" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.priority}
+                  onChange={(e) => setForm({ ...form, priority: e.target.value })}>
+                  <option value="p1">P1 — Critique</option>
+                  <option value="p2">P2 — Haute</option>
+                  <option value="p3">P3 — Normale</option>
+                  <option value="p4">P4 — Basse</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="t-category" className="block text-xs text-slate-400">Catégorie</label>
+                <select id="t-category" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                  <option value="">Catégorie (auto IA)</option>
+                  {['network', 'account', 'infrastructure', 'messaging', 'application', 'general'].map((c) => <option key={c}>{c}</option>)}
+                </select>
+              </div>
             </div>
-            <input required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Titre"
-              value={form.title} onChange={set('title')} />
-            <textarea required className="w-full bg-slate-800 rounded-lg px-3 py-2" rows={3}
-              placeholder="Description du problème par l'utilisateur : impact, contexte…"
-              value={form.description} onChange={set('description')} />
+            <div className="space-y-1">
+              <label htmlFor="t-title" className="block text-xs text-slate-400">Titre</label>
+              <input id="t-title" required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Titre"
+                value={form.title} onChange={set('title')} />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="t-desc" className="block text-xs text-slate-400">Description</label>
+              <textarea id="t-desc" required className="w-full bg-slate-800 rounded-lg px-3 py-2" rows={3}
+                placeholder="Description du problème par l'utilisateur : impact, contexte…"
+                value={form.description} onChange={set('description')} />
+            </div>
 
             <div className="grid grid-cols-3 gap-2 text-sm">
               <label className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
@@ -88,39 +103,57 @@ export default function Tickets({ user }) {
                 Problème existant ?
               </label>
               {form.is_existing && (
-                <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="N° ticket existant"
-                  value={form.related_ticket_number} onChange={set('related_ticket_number')} />
+                <div className="space-y-1">
+                  <label htmlFor="t-related" className="block text-xs text-slate-400">N° ticket existant</label>
+                  <input id="t-related" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder="N° ticket existant"
+                    value={form.related_ticket_number} onChange={set('related_ticket_number')} />
+                </div>
               )}
               <div className="flex items-center gap-2">
-                <label className="text-xs text-slate-500 whitespace-nowrap">1ère occurrence</label>
-                <input type="date" className="flex-1 bg-slate-800 rounded-lg px-3 py-2"
+                <label htmlFor="t-firstseen" className="text-xs text-slate-500 whitespace-nowrap">1ère occurrence</label>
+                <input id="t-firstseen" type="date" className="flex-1 bg-slate-800 rounded-lg px-3 py-2"
                   value={form.first_seen_on} onChange={set('first_seen_on')} />
               </div>
-              <select className="bg-slate-800 rounded-lg px-3 py-2" value={form.users_affected} onChange={set('users_affected')}>
-                {['1', '3', '5', '10+'].map((n) => <option key={n} value={n}>{n} utilisateur(s) affecté(s)</option>)}
-              </select>
-              <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="Actif / N° de série"
-                value={form.asset_tag} onChange={set('asset_tag')} />
-              <input className="bg-slate-800 rounded-lg px-3 py-2" placeholder="N° de rappel"
-                value={form.callback_number} onChange={set('callback_number')} />
+              <div className="space-y-1">
+                <label htmlFor="t-users" className="block text-xs text-slate-400">Utilisateurs affectés</label>
+                <select id="t-users" className="bg-slate-800 rounded-lg px-3 py-2 w-full" value={form.users_affected} onChange={set('users_affected')}>
+                  {['1', '3', '5', '10+'].map((n) => <option key={n} value={n}>{n} utilisateur(s) affecté(s)</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="t-asset" className="block text-xs text-slate-400">Actif / N° de série</label>
+                <input id="t-asset" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder="Actif / N° de série"
+                  value={form.asset_tag} onChange={set('asset_tag')} />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="t-callback" className="block text-xs text-slate-400">N° de rappel</label>
+                <input id="t-callback" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder="N° de rappel"
+                  value={form.callback_number} onChange={set('callback_number')} />
+              </div>
             </div>
-            <input className="w-full bg-slate-800 rounded-lg px-3 py-2 text-sm" placeholder="Message / code d'erreur"
-              value={form.error_message} onChange={set('error_message')} />
+            <div className="space-y-1">
+              <label htmlFor="t-error" className="block text-xs text-slate-400">Message / code d'erreur</label>
+              <input id="t-error" className="w-full bg-slate-800 rounded-lg px-3 py-2 text-sm" placeholder="Message / code d'erreur"
+                value={form.error_message} onChange={set('error_message')} />
+            </div>
 
             <details className="text-sm">
               <summary className="cursor-pointer text-slate-400">Champs technicien (dépannage, cause racine, résolution, KB)</summary>
               <div className="grid grid-cols-3 gap-2 mt-2">
-                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Étapes de dépannage effectuées"
+                <textarea id="t-ts" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Étapes de dépannage effectuées" aria-label="Étapes de dépannage"
                   value={form.troubleshooting} onChange={set('troubleshooting')} />
-                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Cause racine identifiée"
+                <textarea id="t-rc" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Cause racine identifiée" aria-label="Cause racine identifiée"
                   value={form.root_cause} onChange={set('root_cause')} />
-                <textarea className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Résolution / prochaines étapes"
+                <textarea id="t-res" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder="Résolution / prochaines étapes" aria-label="Résolution"
                   value={form.resolution_notes} onChange={set('resolution_notes')} />
               </div>
-              <input className="w-full bg-slate-800 rounded-lg px-3 py-2 mt-2" placeholder="Article KB / Confluence utilisé"
-                value={form.kb_article} onChange={set('kb_article')} />
+              <div className="space-y-1 mt-2">
+                <label htmlFor="t-kb" className="block text-xs text-slate-400">Article KB / Confluence utilisé</label>
+                <input id="t-kb" className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Article KB / Confluence utilisé"
+                  value={form.kb_article} onChange={set('kb_article')} />
+              </div>
             </details>
-            <button className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Créer</button>
+            <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Créer</button>
           </form>
         )}
         <div className="space-y-2">
@@ -162,7 +195,7 @@ export default function Tickets({ user }) {
           </div>
           <div className="flex flex-wrap gap-1">
             {STATUSES.map((s) => (
-              <button key={s} onClick={() => setStatus(s)}
+              <button key={s} onClick={() => setStatus(s)} aria-pressed={sel.status === s}
                 className={`text-xs px-2 py-1 rounded ${sel.status === s ? 'bg-cyan-600' : 'bg-slate-800 hover:bg-slate-700'}`}>{s}</button>
             ))}
           </div>
@@ -185,8 +218,9 @@ export default function Tickets({ user }) {
             ))}
             <form onSubmit={async (e) => { e.preventDefault(); const body = e.target.c.value; if (!body) return; await api(`/tickets/${sel.id}/comments`, { method: 'POST', body: { body } }); e.target.reset(); open(sel); }}
               className="flex gap-1 mt-1">
-              <input name="c" className="flex-1 bg-slate-800 rounded px-2 py-1 text-xs" placeholder="Commenter…" />
-              <button className="bg-cyan-600 rounded px-2 text-xs">→</button>
+              <label htmlFor="ticket-comment" className="sr-only">Commenter</label>
+              <input id="ticket-comment" name="c" className="flex-1 bg-slate-800 rounded px-2 py-1 text-xs" placeholder="Commenter…" />
+              <button type="submit" className="bg-cyan-600 rounded px-2 text-xs">→</button>
             </form>
           </div>
           <div className="border-t border-slate-800 pt-2">

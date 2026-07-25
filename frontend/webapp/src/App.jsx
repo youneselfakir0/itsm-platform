@@ -30,14 +30,22 @@ function Login() {
   };
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={submit} className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-96 space-y-4">
-        <h1 className="text-2xl font-bold text-center">Twister<span className="text-cyan-400">ITSM</span></h1>
-        <input className="w-full bg-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 ring-cyan-500"
-          placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="w-full bg-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 ring-cyan-500"
-          type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} />
-        {err && <p className="text-red-400 text-sm">{err}</p>}
-        <button className="w-full bg-cyan-600 hover:bg-cyan-500 rounded-lg py-2 font-semibold">Connexion</button>
+      <form onSubmit={submit} className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-96 space-y-4" aria-labelledby="login-title">
+        <h1 id="login-title" className="text-2xl font-bold text-center">Twister<span className="text-cyan-400">ITSM</span></h1>
+        <div className="space-y-1">
+          <label htmlFor="email" className="block text-sm text-slate-400">Email</label>
+          <input id="email" name="email" type="email" autoComplete="username" required
+            className="w-full bg-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 ring-cyan-500"
+            value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="password" className="block text-sm text-slate-400">Mot de passe</label>
+          <input id="password" name="password" type="password" autoComplete="current-password" required
+            className="w-full bg-slate-800 rounded-lg px-3 py-2 outline-none focus:ring-2 ring-cyan-500"
+            value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        {err && <p role="alert" className="text-red-400 text-sm">{err}</p>}
+        <button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500 rounded-lg py-2 font-semibold">Connexion</button>
       </form>
     </div>
   );
@@ -61,9 +69,10 @@ export default function App() {
     <div className="min-h-screen flex">
       <aside className="w-56 bg-slate-900 border-r border-slate-800 p-4 flex flex-col">
         <h1 className="text-xl font-bold mb-6">Twister<span className="text-cyan-400">ITSM</span></h1>
-        <nav className="space-y-1 flex-1">
+        <nav aria-label="Navigation principale" className="space-y-1 flex-1">
           {nav.map((n) => (
             <button key={n.id} onClick={() => setView(n.id)}
+              aria-current={view === n.id ? 'page' : undefined}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm ${view === n.id ? 'bg-cyan-600/20 text-cyan-300' : 'hover:bg-slate-800 text-slate-300'}`}>
               {n.label}
             </button>
@@ -75,7 +84,7 @@ export default function App() {
           <button onClick={() => { clearToken(); location.reload(); }} className="mt-2 text-red-400 hover:text-red-300">Déconnexion</button>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-auto"><View user={user} /></main>
+      <main id="main" tabIndex={-1} className="flex-1 p-6 overflow-auto outline-none"><View user={user} /></main>
     </div>
   );
 }

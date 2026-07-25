@@ -28,9 +28,12 @@ export default function Automation() {
             <p className="text-sm text-slate-400">{rb.description}</p>
             <p className="text-xs text-slate-500 mt-1">connector: {rb.connector} · action: {rb.action}</p>
             <div className="flex gap-2 mt-2">
-              <input className="flex-1 bg-slate-800 rounded-lg px-2 py-1 text-xs font-mono" placeholder='{"sam":"jdoe"}'
-                onChange={(e) => setParams(e.target.value)} />
-              <button onClick={() => launch(rb)} className="bg-cyan-600 px-3 py-1 rounded-lg text-xs">Lancer</button>
+              <div className="flex-1 space-y-1">
+                <label htmlFor={`params-${rb.id}`} className="block text-xs text-slate-400">Paramètres (JSON)</label>
+                <input id={`params-${rb.id}`} className="flex-1 bg-slate-800 rounded-lg px-2 py-1 text-xs font-mono" placeholder='{"sam":"jdoe"}'
+                  onChange={(e) => setParams(e.target.value)} />
+              </div>
+              <button type="button" onClick={() => launch(rb)} className="bg-cyan-600 px-3 py-1 rounded-lg text-xs self-end">Lancer</button>
             </div>
           </div>
         ))}

@@ -28,22 +28,32 @@ export default function Cmdb() {
           <button onClick={() => setShowForm(!showForm)} className="bg-cyan-600 px-4 py-2 rounded-lg text-sm font-semibold">+ CI</button>
         </div>
         {showForm && (
-          <form onSubmit={create} className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-2">
-            <select className="w-full bg-slate-800 rounded-lg px-3 py-2" value={form.class}
-              onChange={(e) => setForm({ ...form, class: e.target.value })}>
-              {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-            </select>
-            <input required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Nom"
-              value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <textarea className="w-full bg-slate-800 rounded-lg px-3 py-2 font-mono text-xs" rows={3}
-              placeholder='Attributs JSON: {"os":"...","ip":"..."}'
-              value={form.attributes} onChange={(e) => setForm({ ...form, attributes: e.target.value })} />
-            <button className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Créer</button>
+          <form onSubmit={create} className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-2" aria-label="Nouveau CI">
+            <div className="space-y-1">
+              <label htmlFor="ci-class" className="block text-xs text-slate-400">Classe</label>
+              <select id="ci-class" className="w-full bg-slate-800 rounded-lg px-3 py-2" value={form.class}
+                onChange={(e) => setForm({ ...form, class: e.target.value })}>
+                {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="ci-name" className="block text-xs text-slate-400">Nom</label>
+              <input id="ci-name" required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder="Nom"
+                value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="ci-attrs" className="block text-xs text-slate-400">Attributs JSON</label>
+              <textarea id="ci-attrs" className="w-full bg-slate-800 rounded-lg px-3 py-2 font-mono text-xs" rows={3}
+                placeholder='Attributs JSON: {"os":"...","ip":"..."}'
+                value={form.attributes} onChange={(e) => setForm({ ...form, attributes: e.target.value })} />
+            </div>
+            <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-lg text-sm">Créer</button>
           </form>
         )}
         <table className="w-full text-sm">
+          <caption className="text-left text-xs text-slate-500 mb-1">Configuration Items</caption>
           <thead><tr className="text-left text-slate-500 border-b border-slate-800">
-            <th className="py-2">Nom</th><th>Classe</th><th>Statut</th><th>Env</th></tr></thead>
+            <th scope="col" className="py-2">Nom</th><th scope="col">Classe</th><th scope="col">Statut</th><th scope="col">Env</th></tr></thead>
           <tbody>
             {cis.map((c) => (
               <tr key={c.id} onClick={async () => setSel(await api(`/cmdb/cis/${c.id}`))}

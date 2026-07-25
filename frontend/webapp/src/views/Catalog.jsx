@@ -44,15 +44,15 @@ export default function Catalog({ user }) {
           <h3 className="font-bold">{sel.name}</h3>
           {(sel.form_schema || []).map((f) => (
             <div key={f.name}>
-              <label className="text-sm text-slate-400">{f.label}</label>
+              <label htmlFor={`cf-${f.name}`} className="text-sm text-slate-400">{f.label}</label>
               {f.type === 'select' ? (
-                <select className="w-full bg-slate-800 rounded-lg px-3 py-2"
+                <select id={`cf-${f.name}`} className="w-full bg-slate-800 rounded-lg px-3 py-2"
                   onChange={(e) => setFormData({ ...formData, [f.name]: e.target.value })}>
                   <option value="">—</option>
                   {f.options.map((o) => <option key={o}>{o}</option>)}
                 </select>
               ) : (
-                <input required={f.required} type={f.type === 'number' ? 'number' : 'text'}
+                <input id={`cf-${f.name}`} required={f.required} type={f.type === 'number' ? 'number' : 'text'}
                   className="w-full bg-slate-800 rounded-lg px-3 py-2"
                   onChange={(e) => setFormData({ ...formData, [f.name]: e.target.value })} />
               )}
