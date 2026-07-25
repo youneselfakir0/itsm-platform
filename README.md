@@ -1,124 +1,138 @@
-# TwisterITSM — Plateforme ITSM moderne (concurrent ServiceNow)
+# TwisterITSM — Plateforme ITSM (Modular Monolith)
 
-Plateforme ITSM microservices : ticketing, CMDB dynamique, automatisation, catalogue de services, reporting et couche IA intégrée.
+[![CI](https://github.com/twisterlab/itsm-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/twisterlab/itsm-platform/actions/workflows/ci.yml)
 
-## Stack
-| Couche | Techno | Justification |
+ITSM moderne pour l'administration IT : incidents, demandes, CMDB, catalogue de
+services avec approbations, automatisation Active Directory, workflows/SLA,
+reporting et une couche IA (Ollama) intégrée. Conçue comme une **alternative
+on-premise légère** à ServiceNow / Jira Service Management.
+
+> Projet portfolio (administration IT) — code testé, documenté et sûr, destiné
+> à une publication publique. Voir `docs/SECRETS.md` pour la gestion des secrets.
+
+## Stack technique
+
+| Couche | Technologie | Raison |
 |---|---|---|
-| Backend | Node.js / **NestJS** (TypeScript) | Modulaire, DI native, décorateurs, écosystème mature |
-| Frontend | **React 18 + Vite + Tailwind** | UI moderne, DX rapide |
-| DB | **PostgreSQL 16** | Relationnel, JSONB pour CI attributes, partitioning audit |
-| Cache / Queue | **Redis + BullMQ** | Workers async, jobs automation |
-| Events | **NATS JetStream** | Bus événementiel léger inter-services |
-| Gateway | **API Gateway NestJS** (BFF) + JWT/RBAC | Point d'entrée unique |
-| IA | ai-service (LLM API + RAG pgvector) | Classification, suggestions, copilote |
-| Déploiement | Docker Compose (dev) → Kubernetes `k8s/` (prod) | Standard TwisterLab |
+| Backend | **NestJS (monolithic modulaire) + TypeScript** | Un seul process, modules à frontières de domaine nettes, DI, décorateurs |
+| ORM | **Prisma + PostgreSQL 16** | Typage, migrations, JSONB pour les attributs de CI |
+| Frontend | **React 18 + Vite + Tailwind** | UI moderne, démarrage rapide |
+| Edge | **Nginx** (TLS + reverse proxy) | Terminaison TLS, routage `/api` → API |
+| Déploiement | **Docker Compose** (dev) → **Kubernetes / K3s** (`k8s/`) | Standard lab |
+| IA | **Ollama** (qwen3:8b) en local, fallback heuristique | Pas de dépendance cloud, jamais de blocage si le GPU est down |
 
-## Architecture logique
+## Architecture — Modular Monolith
+
+Un seul déployable NestJS, découpé en modules métier cohérents (pas de réseau
+inter-services). Chaque module possède ses controllers, services, et (souvent)
+ses tables Prisma :
 
 ```
-                        ┌──────────────────────────────┐
-                        │   FRONTEND (React+Tailwind)  │
-                        │ Portail user │ Console tech  │
-                        │        │ Console admin       │
-                        └──────────────┬───────────────┘
-                                       │ HTTPS
-                              ┌────────▼────────┐
-                              │   API GATEWAY   │  JWT · RBAC · Rate-limit
-                              └────────┬────────┘
-      ┌──────────┬───────────┬─────────┼──────────┬───────────┬──────────┐
-      ▼          ▼           ▼         ▼          ▼           ▼          ▼
- ┌────────┐ ┌────────┐ ┌──────────┐ ┌──────┐ ┌─────────┐ ┌────────┐ ┌────────┐
- │ auth   │ │ user   │ │ticketing │ │ cmdb │ │catalog  │ │reporting│ │ ai    │
- │service │ │service │ │ service  │ │service│ │service │ │ service │ │service│
- └───┬────┘ └───┬────┘ └────┬─────┘ └──┬───┘ └────┬────┘ └────┬────┘ └───┬───┘
-     │          │           │          │          │           │          │
-     └──────────┴───────────┴────┬─────┴──────────┴───────────┴──────────┘
-                                 │ publish/subscribe
-                        ┌────────▼─────────┐
-                        │  events-service  │  NATS JetStream
-                        └────────┬─────────┘
-                                 │
-                     ┌───────────▼──────────────┐
-                     │   automation-service     │  BullMQ workers
-                     │ AD · AzureAD · VMware ·  │
-                     │ Hyper-V · Zabbix · SMTP  │
-                     └──────────────────────────┘
-                                 │
-                        ┌────────▼────────┐
-                        │  PostgreSQL 16  │ (schéma par service)
-                        │  Redis · pgvector│
-                        └─────────────────┘
+                         ┌──────────────────────────────┐
+                         │   Frontend (React+Tailwind)  │
+                         └──────────────┬───────────────┘
+                                        │ HTTPS /api
+                         ┌──────────────▼───────────────┐
+                         │   Nginx (TLS, reverse proxy) │
+                         └──────────────┬───────────────┘
+                                        │
+                         ┌──────────────▼───────────────┐
+                         │   NestJS Modular Monolith    │
+                         │  (1 process, modules isolés) │
+                         ├──────────────────────────────┤
+                         │ identity │ ticketing │ cmdb  │
+                         │ catalog  │ automation │ events│
+                         │ workflow │ reporting  │ ai    │
+                         │ notifications                │
+                         └──────────────┬───────────────┘
+                                        │ Prisma
+                         ┌──────────────▼───────────────┐
+                         │   PostgreSQL 16 (schéma itsm)│
+                         └──────────────────────────────┘
 ```
 
-## Microservices
+Modules internes et responsabilités :
 
-| Service | Port | Responsabilité | Événements émis |
-|---|---|---|---|
-| `auth-service` | 3001 | Login local + AD/AzureAD (OIDC), JWT (access/refresh), RBAC, MFA | `auth.login`, `auth.failed` |
-| `user-service` | 3002 | Profils, équipes, groupes, sync AD | `user.created`, `user.synced` |
-| `ticketing-service` | 3003 | Incidents, demandes, problèmes, changements, SLA, workflows | `ticket.created`, `ticket.updated`, `sla.breached` |
-| `cmdb-service` | 3004 | CI dynamiques (JSONB), classes, relations, discovery | `ci.created`, `ci.changed` |
-| `automation-service` | 3005 | Runbooks, exécution PowerShell/Bash, connecteurs AD/Azure/VMware/Hyper-V/Zabbix, webhooks, SMTP | `job.completed`, `job.failed` |
-| `events-service` | 3006 | Bus NATS, corrélation événements → tickets (event management) | — |
-| `catalog-service` | 3007 | Catalogue de services, formulaires dynamiques, approbations | `request.submitted`, `request.approved` |
-| `reporting-service` | 3008 | KPIs, dashboards, exports, agrégats matérialisés | — |
-| `ai-service` | 3009 | Classification tickets, suggestion résolution, génération scripts, analyse logs, copilote (RAG pgvector) | `ai.classified` |
+| Module | Responsabilité |
+|---|---|
+| `identity` | Auth (JWT + refresh), RBAC, MFA TOTP, sync/LDAP AD |
+| `ticketing` | Incidents, demandes, commentaires, historique d'audit |
+| `cmdb` | Configuration Items (JSONB), classes, relations, **discovery AD** |
+| `catalog` | Catalogue de services, demandes, **approbations** |
+| `automation` | Runbooks + connecteur **Active Directory via WinRM** (dry-run par défaut) |
+| `events` | Webhooks + corrélation événement → ticket (event management) |
+| `workflow` | Politiques SLA, **calcul + détection de breach idempotente**, approbations |
+| `reporting` | KPIs / tableau de bord |
+| `ai` | Classification, suggestion de résolution, génération de scripts, analyse de logs |
+| `notifications` | SMTP (DRY-RUN si non config) + webhook Microsoft Teams |
 
-## Flux de données clés
-1. **Création ticket** : Portail → Gateway → ticketing → publish `ticket.created` → ai-service classe (catégorie/priorité/assignation) → events notifie (SMTP/webhook).
-2. **Event management** : Zabbix/Prometheus → webhook events-service → corrélation → auto-ticket + lien CI CMDB.
-3. **Automation** : ticket "reset password" → catalog → approbation → automation-service → connecteur AD → résultat journalisé + audit.
-4. **Copilote** : console tech → ai-service (contexte ticket + CI + historique via RAG) → suggestions/scripts.
+## Pourquoi ces choix (raisonnement orienté admin IT)
 
-## Modèle de données (noyau — schéma par service)
-- `auth`: users_auth, roles, permissions, role_permissions, refresh_tokens
-- `users`: users, teams, team_members
-- `ticketing`: tickets (partitionné par mois), ticket_comments, ticket_history (audit), slas, workflows, workflow_transitions
-- `cmdb`: ci_classes, cis (attrs JSONB + index GIN), ci_relations, ci_history
-- `catalog`: catalog_items, request_forms (JSONB), requests, approvals
-- `automation`: runbooks, jobs, job_logs, connectors, credentials (chiffré)
-- `ai`: embeddings (pgvector), classifications, suggestions_feedback
+- **Modular monolith, pas de microservices** : en lab / PME, le coût ops d'un
+  maillage de 9 services (service mesh, queues, réseau) dépasse le bénéfice.
+  On garde des frontières de domaine propres (modules) sans la complexité réseau.
+- **Automation AD en `dry-run` par défaut** : une mauvaise action sur un compte
+  AD (reset password, disable) est réversible seulement partiellement. Le
+  garde-fou `dry_run=true` + un flag `ALLOW_REAL_AD=1` **explicite** évite les
+  catastrophes sur un compte de production. Voir `ad.ts`.
+- **Comptes protégés en dur** (`administrator`, `admin`, `krbtgt`, `guest`) :
+  refusés *avant* toute validation de paramètre. Même avec `ALLOW_REAL_AD=1`,
+  ces comptes ne sont jamais manipulés par l'automatisation.
+- **Audit append-only** : chaque exécution AD (succès/échec/dry-run) est
+  journalisée (`automation.ad_executions`) avec l'acteur. Traçabilité = prerequis
+  de toute équipe IT sérieuse (conformité, post-mortem).
+- **JWT + RBAC + MFA** : défense en profondeur standard. Le MFA TOTP est
+  optionnel mais enclenchable par utilisateur ; les routes sensibles exigent
+  des permissions explicites (`@Permissions(...)`).
+- **IA avec fallback déterministe** : si Ollama est indisponible, l'endpoint
+  `/ai/classify` retombe sur une heuristique locale — jamais de dépendance
+  bloquante à un service externe.
 
-Toutes les tables : `id uuid pk`, `created_at`, `updated_at`, audit trigger → `*_history`.
+## Démarrage rapide
 
-## Sécurité
-- JWT RS256 (clé privée auth-service, publique distribuée), refresh rotation
-- RBAC: roles → permissions granulaires (`ticket:read`, `ci:write`, `automation:execute`…)
-- Secrets connecteurs chiffrés (AES-256-GCM), jamais en clair
-- Règle dure : **aucune exécution automation sur compte réel en environnement de test**
+### Vérification immédiate (sans infrastructure)
 
-## Structure du repo
-```
-itsm-platform/
-├── services/
-│   ├── auth-service/ ... ai-service/     # NestJS chacun
-├── frontend/
-│   ├── portal/        # portail utilisateur
-│   ├── tech-console/  # console technicien
-│   └── admin-console/ # console admin
-├── packages/
-│   ├── shared/        # DTOs, types, events contracts
-│   └── sdk/           # client API généré
-├── infra/
-│   ├── docker-compose.yml
-│   └── k8s/
-├── db/migrations/
-└── docs/
-```
+Build + tests unitaires sont exécutables sans base de données :
 
-## Roadmap
-- **P0** ✅ : monorepo, auth + ticketing + gateway, migrations, RBAC
-- **P1** ✅ : cmdb + catalog + automation (connecteur AD dry-run + comptes protégés)
-- **P2** ✅ : events (webhook + corrélation) + reporting + ai-service (classification, suggestions, scripts, logs)
-- **P3** ✅ : frontend React+Tailwind (portail/tech/admin unifiés par RBAC), Dockerfiles, manifests K8s
-
-## Démarrage rapide (dev)
 ```bash
-docker --context twisterlab-ubuntu compose -p itsm -f infra/docker-compose.yml up -d
-npm install
-export DATABASE_URL='postgres://itsm:itsm_dev_pw@192.168.0.30:5433/itsm'
-bash scripts/dev-up.sh          # migre + démarre les 10 services
-cd frontend/webapp && npm run dev   # UI sur :5173 (proxy /api -> :8080)
+npm ci
+npm run build --workspace @twisteritsm/api      # prisma generate + tsc
+npm test --workspace @twisteritsm/api           # 23 tests (ad / workflow / mfa)
 ```
-Voir `docs/API.md` pour la référence API complète.
+
+### Environnement complet (dev, nécessite PostgreSQL + Redis + Ollama)
+
+```bash
+# 1) Copier et renseigner les variables d'environnement
+cp .env.example .env                            # voir docs/SECRETS.md
+# 2) Démarrer l'infra (Postgres, Redis, Nginx, API, Web) via Compose
+docker compose -f infra/docker-compose.yml up -d
+# 3) Appliquer le schéma et lancer les migrations
+npm run prisma:generate
+node db/migrate.js
+# 4) UI sur http://localhost:5173 (proxy /api -> :8080)
+cd frontend/webapp && npm run dev
+```
+
+Le déploiement Kubernetes (K3s) est documenté dans `k8s/README.md` ; les
+manifests de secrets y sont **exemples** (jamais de valeurs réelles, voir
+`docs/SECRETS.md`).
+
+## Documentation
+
+- `docs/ARCHITECTURE.md` — architecture détaillée (modules, flux, sécurité)
+- `docs/API.md` — référence des endpoints REST (`/api/...`)
+- `docs/SECRETS.md` — gestion des secrets (aucun secret réel dans le repo)
+- `legacy/` — ancienne architecture microservices (non maintenue, historique)
+
+## Tests & CI
+
+23 tests unitaires couvrent les garde-fous métier les plus démonstratifs :
+connecteur AD (comptes protégés, dry-run, audit, exécution réelle mockée),
+workflow SLA (détection de breach + escalade **idempotente**, approbations
+multi-niveaux), et MFA TOTP. Le pipeline GitHub Actions build + test à chaque
+push/PR sur `main`.
+
+## Licence
+
+MIT — voir `LICENSE`.

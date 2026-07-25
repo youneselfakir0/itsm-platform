@@ -1,26 +1,32 @@
 # TwisterITSM — Enterprise Architecture Document
 
 > Digital Workflow Platform ITSM On-Premise — alternative à ServiceNow / BMC Helix / Jira SM.
-> Statut : **PROPOSITION — en attente de validation** (aucun code cible NestJS/Prisma généré avant GO).
 > Domaine d'identité central : `twisterlab.local`.
+>
+> **Statut : LIVRÉ** — Modular Monolith NestJS + Prisma (voir `README.md`). Les
+> modules `identity`, `ticketing`, `cmdb`, `catalog`, `automation`, `events`,
+> `workflow`, `reporting`, `ai`, `notifications` sont implémentés et testés.
+> Aucun secret réel n'est présent dans le dépôt (voir `docs/SECRETS.md`).
 
 ---
 
-## 0. Réconciliation avec l'existant (P0–P2 déjà livré)
+## 0. Réconciliation avec l'existant (consolidation des 9 microservices → monolithe)
 
-Le dépôt contient déjà une base **testée E2E** (auth, ticketing riche + audit acteur, cmdb, catalog, automation AD dry-run, events, reporting, ai, gateway, webapp React). Le prompt cible cependant un **Modular Monolith NestJS + Prisma**. Décision proposée :
+Le dépôt a consolidé les 9 microservices Express d'origine en **1 Modular Monolith
+NestJS + Prisma** (commit `feat(E1)`). Le modèle de données (schémas normalisés
+`db/migrations/00x_*.sql`) a été réutilisé comme baseline Prisma (`prisma db pull`).
 
-| Existant (microservices Express + `pg`) | Décision cible | Justification |
+| Ancien (microservices Express + `pg`) | Décision | État |
 |---|---|---|
-| `services/auth-service` (JWT+RBAC+bcrypt) | **Refondu** en module `identity` NestJS | Prisma + LDAP/MFA à ajouter proprement |
-| `services/ticketing-service` (NestJS + `pg`, tickets riches EUSD + audit acteur) | **Migré** en modules `incident/request/problem/change` | logique métier & schéma réutilisables tels quels |
-| `db/migrations/00x_*.sql` (schémas normalisés) | **Réutilisés** comme baseline Prisma (`prisma db pull`) | le modèle de données est bon, on le capitalise |
-| `cmdb / catalog / automation / events / reporting / ai` (Express) | **Absorbés** en modules du monolithe | suppression du coût réseau inter-services inutile en MVP |
-| `gateway` (Express proxy) | **Remplacé** par Nginx + routing NestJS | un seul process applicatif |
-| `frontend/webapp` (React+Vite+Tailwind) | **Conservé et étendu** (Router, TanStack Query, RHF, Zod) | déjà fonctionnel, on ajoute les 3 espaces |
-| Connecteur AD PowerShell (dry-run + comptes protégés) | **Conservé** dans `automation` | règle de sécurité déjà codée, précieuse |
+| `services/auth-service` (JWT+RBAC+bcrypt) | **Refondu** en module `identity` NestJS | ✅ (RBAC, MFA TOTP, LDAP sync) |
+| `services/ticketing-service` (NestJS + `pg`) | **Migré** en module `ticketing` | ✅ (tickets + audit acteur) |
+| `cmdb / catalog / automation / events / reporting / ai` (Express) | **Absorbés** en modules du monolithe | ✅ |
+| `gateway` (Express proxy) | **Remplacé** par Nginx + routing NestJS | ✅ |
+| `frontend/webapp` (React+Vite+Tailwind) | **Conservé** | ✅ |
 
-**Principe** : on ne repart pas de zéro. On consolide 9 microservices en **1 modular monolith** (moins d'ops, mêmes frontières de domaine), on passe à **Prisma**, on ajoute les moteurs génériques (Metadata/Form/Workflow/Rule) qui manquent.
+**Principe** : un seul process applicatif (moins d'ops), mêmes frontières de
+domaine, Prisma comme ORM. La séparation en modules garde la possibilité
+théorique d'extraire un service plus tard sans réécrire le domaine.
 
 ---
 
@@ -186,7 +192,7 @@ flowchart TB
 
 | Moteur | Rôle clé | État actuel |
 |---|---|---|
-| Identity | RBAC + LDAP + MFA + SSO | RBAC ✅, LDAP/MFA à faire |
+| Identity | RBAC + LDAP + MFA + SSO | ✅ RBAC, LDAP sync, MFA TOTP livrés |
 | Metadata | Définir tables/champs à chaud | À concevoir (P4) |
 | Form | Formulaires dynamiques conditionnels | Statique aujourd'hui → dynamique (P4) |
 | Workflow | Approbations/escalades/timers | Approbation catalogue simple ✅ → moteur générique |
@@ -320,4 +326,8 @@ flowchart LR
 
 ---
 
-**➡️ En attente de ta validation de cette architecture avant génération de tout code cible (NestJS/Prisma).**
+## 16. Cohérence avec le code livré
+
+Cette documentation décrit l'architecture **telle qu'implémentée** (modular
+monolith, modules listés en section 0). Les endpoints réels sont dans
+`docs/API.md`. Aucun secret réel n'est committé (voir `docs/SECRETS.md`).
