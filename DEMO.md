@@ -97,4 +97,4 @@ parcourir toutes les vues. MFA TOTP et sync LDAP sont implémentés côté API.
 - GitHub Actions (`.github/workflows/ci.yml`) : `npm ci` → build → test sur
   Node 20. Badge :
 
-![CI](https://github.com/twisterlab/itsm-platform/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml/badge.svg)

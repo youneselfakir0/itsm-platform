@@ -1,6 +1,6 @@
 # TwisterITSM — Plateforme ITSM (Modular Monolith)
 
-[![CI](https://github.com/twisterlab/itsm-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/twisterlab/itsm-platform/actions/workflows/ci.yml)
+[![CI](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml)
 
 ITSM moderne pour l'administration IT : incidents, demandes, CMDB, catalogue de
 services avec approbations, automatisation Active Directory, workflows/SLA,
