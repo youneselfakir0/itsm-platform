@@ -9,12 +9,14 @@ import { execFile } from 'child_process';
 import { winrmRun } from './winrm-client';
 
 const PROTECTED = ['administrator', 'admin', 'krbtgt', 'guest'];
-const ALLOW_REAL = process.env.ALLOW_REAL_AD === '1';
 const AD_HOST = process.env.AD_HOST || '192.168.0.20';
 const AD_PORT = Number(process.env.AD_PORT || 5985);
 const AD_EXEC_MODE = process.env.AD_EXEC_MODE || 'soap';
 const AD_SVC = process.env.AD_SVC || 'twisterlab.local\\svc-itsm';
-const AD_SVC_PW = process.env.AD_SVC_PW || '';
+
+// Lues à l'appel (pas au chargement) pour rester surchargeables via env sans redémarrer.
+function allowRealAd() { return process.env.ALLOW_REAL_AD === '1'; }
+function adSvcPw() { return process.env.AD_SVC_PW || ''; }
 
 function psFor(action: string, p: Record<string, any>): string {
   const q = (s: string) => `'${String(s).replace(/'/g, "''")}'`;
@@ -36,6 +38,16 @@ function psFor(action: string, p: Record<string, any>): string {
   }
 }
 
+export interface AdResult {
+  ok: boolean;
+  status: 'succeeded' | 'failed';
+  dry_run?: boolean;
+  command?: string;
+  output?: string;
+  error?: string;
+  note?: string;
+}
+
 @Injectable()
 export class AdConnector {
   constructor(private prisma?: PrismaService) {}
@@ -49,7 +61,7 @@ export class AdConnector {
     if (AD_EXEC_MODE === 'powershell') {
       // Lab Windows : Invoke-Command via powershell.exe local.
       // `command` est un cmdlet AD pur (ex: Set-ADAccountPassword ...) -> injecté tel quel dans le ScriptBlock.
-      const ps = `$sec=ConvertTo-SecureString '${AD_SVC_PW.replace(/'/g, "''")}' -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential('${AD_SVC}',$sec); Invoke-Command -ComputerName ${AD_HOST} -Port ${AD_PORT} -Credential $cred -ScriptBlock { ${command} }`;
+      const ps = `$sec=ConvertTo-SecureString '${adSvcPw().replace(/'/g, "''")}' -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential('${AD_SVC}',$sec); Invoke-Command -ComputerName ${AD_HOST} -Port ${AD_PORT} -Credential $cred -ScriptBlock { ${command} }`;
       return new Promise((resolve, reject) => {
         execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], { timeout: 60000, windowsHide: true }, (err, stdout, stderr) => {
           if (err && !stdout) return reject(err);
@@ -58,42 +70,44 @@ export class AdConnector {
       });
     }
     // Mode soap (Linux/conteneur)
-    return winrmRun({ host: AD_HOST, port: AD_PORT, username: AD_SVC, password: AD_SVC_PW }, command);
+    return winrmRun({ host: AD_HOST, port: AD_PORT, username: AD_SVC, password: adSvcPw() }, command);
   }
 
-  async runAd(action: string, params: Record<string, any>, dryRun?: boolean, actorId?: string) {
+  async runAd(action: string, params: Record<string, any>, dryRun?: boolean, actorId?: string): Promise<AdResult> {
     const sam = String(params.samAccountName ?? '').toLowerCase();
+
+    // GARDE-FOU 1 : compte protégé refusé AVANT toute validation de paramètres.
+    if (PROTECTED.includes(sam)) {
+      const res: AdResult = { ok: false, status: 'failed', error: 'protected account — refused' };
+      await this.audit({ action, target: sam, params, status: 'failed', error: res.error, actor_id: actorId });
+      return res;
+    }
+
     let command: string;
     try {
       command = psFor(action, params);
     } catch (e: any) {
       const msg = e?.message ?? String(e);
-      const res = { ok: false, status: 'failed', error: msg };
+      const res: AdResult = { ok: false, status: 'failed', error: msg };
       await this.audit({ action, target: sam, params, status: 'failed', error: msg, actor_id: actorId });
       return res;
     }
-    const effectiveDry = dryRun ?? !ALLOW_REAL;
+    const effectiveDry = dryRun ?? !allowRealAd();
 
-    if (PROTECTED.includes(sam)) {
-      const res = { ok: false, status: 'failed', error: 'protected account — refused', command };
-      await this.audit({ action, target: sam, params, status: 'failed', command, error: res.error, actor_id: actorId });
-      return res;
-    }
-
-    if (effectiveDry || !ALLOW_REAL || !AD_SVC_PW) {
-      const res = { ok: true, status: 'succeeded', dry_run: true, command, note: 'dry-run: non exécuté' };
+    if (effectiveDry || !allowRealAd() || !adSvcPw()) {
+      const res: AdResult = { ok: true, status: 'succeeded', dry_run: true, command, note: 'dry-run: non exécuté' };
       await this.audit({ action, target: sam, params, status: 'dry_run', dry_run: true, command, actor_id: actorId });
       return res;
     }
 
     try {
       const { output, exitCode } = await this.execReal(command);
-      const status = exitCode === 0 ? 'succeeded' : 'failed';
-      const res = { ok: exitCode === 0, status, command, output: output.slice(0, 4000) };
+      const status: 'succeeded' | 'failed' = exitCode === 0 ? 'succeeded' : 'failed';
+      const res: AdResult = { ok: exitCode === 0, status, command, output: output.slice(0, 4000) };
       await this.audit({ action, target: sam, params, status, command, output: res.output, actor_id: actorId });
       return res;
     } catch (e: any) {
-      const res = { ok: false, status: 'failed', command, error: e?.message ?? String(e) };
+      const res: AdResult = { ok: false, status: 'failed', command, error: e?.message ?? String(e) };
       await this.audit({ action, target: sam, params, status: 'failed', command, error: res.error, actor_id: actorId });
       return res;
     }
