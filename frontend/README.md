@@ -8,7 +8,7 @@ qui consomme l'API NestJS (`/api`).
 | Dossier | Statut | Description |
 | --- | --- | --- |
 | `webapp/` | ✅ **Actif / maintenu** | SPA React (Vite) : Tickets, Catalogue, CMDB, Automation, Dashboard, Copilote IA. Accessibilité (labels ARIA, skip-link), bilinguisme FR/EN, thème clair/sombre. |
-| `portal/`, `tech-console/`, `admin-console/` | ⚠️ **Vestiges — non maintenus** | Reliquats de l'ancienne architecture microservices (P0–P2). Ils sont vides et ne font plus partie du build. À supprimer du disque (hors git, non versionnés). |
+| `portal/`, `tech-console/`, `admin-console/` | 🗑️ **Supprimés** | Reliquats de l'ancienne architecture microservices (P0–P2), vides et non versionnés. Retirés du disque. |
 
 ## Développement
 
