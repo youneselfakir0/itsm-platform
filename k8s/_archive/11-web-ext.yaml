@@ -1,0 +1,25 @@
+# Expose la maquette UI (Vite, sur le DC 192.168.0.20:4000) au cluster K3s
+# via un Service ClusterIP + Endpoints manuels (IP hors cluster).
+apiVersion: v1
+kind: Service
+metadata:
+  name: itsm-web-ext
+  namespace: twisteritsm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4000
+      targetPort: 4000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: itsm-web-ext
+  namespace: twisteritsm
+subsets:
+  - addresses:
+      - ip: 192.168.0.20
+    ports:
+      - port: 4000
+        protocol: TCP

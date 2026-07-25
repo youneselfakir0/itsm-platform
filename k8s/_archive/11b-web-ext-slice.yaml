@@ -1,0 +1,15 @@
+# EndpointSlice explicite (K8s v1.33+) pour exposer l'UI hors cluster (DC 192.168.0.20:4000)
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: itsm-web-ext
+  namespace: twisteritsm
+  labels:
+    kubernetes.io/service-name: itsm-web-ext
+addressType: IPv4
+ports:
+  - protocol: TCP
+    port: 4000
+endpoints:
+  - addresses:
+      - 192.168.0.20

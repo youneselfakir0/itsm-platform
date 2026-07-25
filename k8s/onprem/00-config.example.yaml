@@ -1,0 +1,49 @@
+# EXEMPLE de configuration K8s (variante on-prem / K3s réel) — NE PAS APPLIQUER TEL QUEL.
+# Ce fichier est commité SANS aucune valeur secrète. Pour déployer :
+#   1) remplir les valeurs du Secret (voir docs/SECRETS.md), OU
+#   2) appliquer le fichier local non-suivi k8s/onprem/00-secrets.local.yaml (gitignoré), OU
+#   3) `kubectl create secret generic itsm-secrets -n twisteritsm --from-literal=JWT_SECRET=... --from-literal=DATABASE_URL=...`
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: twisteritsm
+  labels:
+    app.kubernetes.io/part-of: twisteritsm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itsm-config
+  namespace: twisteritsm
+data:
+  # La DB tourne sur l'hôte physique (192.168.0.30:5433), joignable depuis les pods.
+  DB_HOST: "192.168.0.30"
+  DB_PORT: "5433"
+  DB_NAME: "itsm"
+  DB_USER: "itsm"
+  AI_API_URL: "http://192.168.0.20:11434"
+  AI_MODEL: "qwen3:8b"
+  AI_CODER_MODEL: "qwen2.5-coder:latest"
+  SMTP_FROM: "itsm@twisterlab.local"
+  NOTIFY_EMAIL: "ops@twisterlab.local"
+  SLA_TIMER_MS: "60000"
+---
+# Secret TEMPLATE — les valeurs sont volontairement vides. Ne contient AUCUN
+# secret réel. Remplir avant apply (voir docs/SECRETS.md).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: itsm-secrets
+  namespace: twisteritsm
+type: Opaque
+stringData:
+  # Générer : openssl rand -base64 48
+  JWT_SECRET: ""
+  # URL complète (avec mot de passe) — ex: postgres://itsm:<pw>@192.168.0.30:5433/itsm
+  DATABASE_URL: ""
+  POSTGRES_PASSWORD: ""
+  SMTP_HOST: ""
+  SMTP_PORT: "587"
+  SMTP_USER: ""
+  SMTP_PASS: ""
+  TEAMS_WEBHOOK: ""

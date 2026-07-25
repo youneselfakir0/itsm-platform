@@ -2,3 +2,12 @@ node_modules/
 dist/
 .env
 *.log
+
+# Secrets / manifests K8s contenant des valeurs réelles (jamais suivis)
+*.secret.yaml
+*.secrets.local.yaml
+*.local.yaml
+k8s/**/00-secrets.local.yaml
+k8s/**/00-config.yaml
+k8s/onprem/00-secrets.local.yaml
+.env.example.bak
