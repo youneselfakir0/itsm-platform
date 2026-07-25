@@ -95,6 +95,8 @@ parcourir toutes les vues. MFA TOTP et sync LDAP sont implémentés côté API.
 - `npm test --workspace @twisteritsm/api` → 23 tests unitaires
   (connecteur AD, workflow SLA, MFA) — 100 % verts.
 - GitHub Actions (`.github/workflows/ci.yml`) : `npm ci` → build → test sur
-  Node 20. Badge :
-
-![CI](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml/badge.svg)
+  Node 20. **Passe en local** (`npm test --workspace @twisteritsm/api` → 23/23
+  verts). L'exécution sur github.com est temporairement bloquée par une
+  restriction du compte GitHub (jobs en échec sans log) — voir
+  `docs/GITHUB_METADATA.md`. Badge non affiché tant que le compte n'est pas
+  débloqué (éviter une croix trompeuse sur le portfolio).

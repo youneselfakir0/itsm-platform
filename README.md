@@ -1,6 +1,12 @@
 # TwisterITSM — Plateforme ITSM (Modular Monolith)
 
-[![CI](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/youneselfakir0/itsm-platform/actions/workflows/ci.yml)
+> [!NOTE]
+> **CI** : le workflow GitHub Actions (`.github/workflows/ci.yml` — `npm ci` →
+> build → test, 23 tests) est configuré et **passe en local** (preuve :
+> `npm test --workspace @twisteritsm/api` → 23/23 verts). Son exécution sur
+> github.com est temporairement bloquée par une restriction du compte GitHub
+> (jobs en échec sans log, même un `echo`) — à lever dans les réglages du
+> compte / support GitHub. Voir `docs/GITHUB_METADATA.md`.
 
 ITSM moderne pour l'administration IT : incidents, demandes, CMDB, catalogue de
 services avec approbations, automatisation Active Directory, workflows/SLA,
