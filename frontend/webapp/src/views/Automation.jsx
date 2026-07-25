@@ -25,14 +25,14 @@ export default function Automation() {
       <h2 className="text-2xl font-bold">{t('automation.title')} <span className="text-xs text-amber-400 font-normal">({t('automation.dryRunNote')})</span></h2>
       <div className="grid grid-cols-2 gap-4">
         {runbooks.map((rb) => (
-          <div key={rb.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div key={rb.id} className="bg-surface border border-surface rounded-xl p-4">
             <p className="font-semibold">{rb.name}</p>
-            <p className="text-sm text-slate-400">{rb.description}</p>
+            <p className="text-sm text-muted">{rb.description}</p>
             <p className="text-xs text-slate-500 mt-1">connector: {rb.connector} · action: {rb.action}</p>
             <div className="flex gap-2 mt-2">
               <div className="flex-1 space-y-1">
-                <label htmlFor={`params-${rb.id}`} className="block text-xs text-slate-400">{t('automation.params')}</label>
-                <input id={`params-${rb.id}`} className="flex-1 bg-slate-800 rounded-lg px-2 py-1 text-xs font-mono" placeholder='{"sam":"jdoe"}'
+                <label htmlFor={`params-${rb.id}`} className="block text-xs text-muted">{t('automation.params')}</label>
+                <input id={`params-${rb.id}`} className="flex-1 bg-input rounded-lg px-2 py-1 text-xs font-mono" placeholder='{"sam":"jdoe"}'
                   onChange={(e) => setParams(e.target.value)} />
               </div>
               <button type="button" onClick={() => launch(rb)} className="bg-cyan-600 px-3 py-1 rounded-lg text-xs self-end">{t('automation.launch')}</button>
@@ -45,18 +45,18 @@ export default function Automation() {
         <div className="space-y-1">
           {jobs.map((j) => (
             <div key={j.id} onClick={async () => setSel(await api(`/automation/jobs/${j.id}`))}
-              className="bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm flex gap-3 cursor-pointer hover:border-cyan-700">
+              className="bg-surface border border-surface rounded-lg p-2 text-sm flex gap-3 cursor-pointer hover:border-cyan-700">
               <span className="flex-1">{j.runbook}</span>
               {j.dry_run && <span className="text-xs text-amber-400">dry-run</span>}
-              <span className={j.status === 'succeeded' ? 'text-green-400' : j.status === 'failed' ? 'text-red-400' : 'text-slate-400'}>{j.status}</span>
+              <span className={j.status === 'succeeded' ? 'text-green-400' : j.status === 'failed' ? 'text-red-400' : 'text-muted'}>{j.status}</span>
             </div>
           ))}
         </div>
       </div>
       {sel && (
-        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
+        <div className="bg-page border border-surface rounded-xl p-4">
           <p className="font-bold text-sm mb-2">{sel.runbook} — {t('automation.logs')}</p>
-          {sel.logs?.map((l, i) => <p key={i} className="text-xs font-mono text-slate-400">[{l.level}] {l.message}</p>)}
+          {sel.logs?.map((l, i) => <p key={i} className="text-xs font-mono text-muted">[{l.level}] {l.message}</p>)}
           <pre className="text-xs text-cyan-300 mt-2">{JSON.stringify(sel.result, null, 2)}</pre>
         </div>
       )}

@@ -57,11 +57,11 @@ export default function Tickets({ user }) {
           <button onClick={() => setShowForm(!showForm)} className="bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-lg text-sm font-semibold">+ {t('tickets.new')}</button>
         </div>
         {showForm && (
-          <form onSubmit={create} className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-3" aria-label={t('tickets.form.title')}>
+          <form onSubmit={create} className="bg-surface border border-surface rounded-xl p-4 mb-4 space-y-3" aria-label={t('tickets.form.title')}>
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
-                <label htmlFor="t-type" className="block text-xs text-slate-400">{t('tickets.type')}</label>
-                <select id="t-type" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.type}
+                <label htmlFor="t-type" className="block text-xs text-muted">{t('tickets.type')}</label>
+                <select id="t-type" className="bg-input rounded-lg px-3 py-2 text-sm w-full" value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}>
                   <option value="incident">{t('tickets.type')}: Incident</option>
                   <option value="request">{t('tickets.type')}: Demande</option>
@@ -70,8 +70,8 @@ export default function Tickets({ user }) {
                 </select>
               </div>
               <div className="space-y-1">
-                <label htmlFor="t-priority" className="block text-xs text-slate-400">{t('tickets.priority')}</label>
-                <select id="t-priority" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.priority}
+                <label htmlFor="t-priority" className="block text-xs text-muted">{t('tickets.priority')}</label>
+                <select id="t-priority" className="bg-input rounded-lg px-3 py-2 text-sm w-full" value={form.priority}
                   onChange={(e) => setForm({ ...form, priority: e.target.value })}>
                   <option value="p1">P1 — Critique</option>
                   <option value="p2">P2 — Haute</option>
@@ -80,8 +80,8 @@ export default function Tickets({ user }) {
                 </select>
               </div>
               <div className="space-y-1">
-                <label htmlFor="t-category" className="block text-xs text-slate-400">{t('tickets.category')}</label>
-                <select id="t-category" className="bg-slate-800 rounded-lg px-3 py-2 text-sm w-full" value={form.category}
+                <label htmlFor="t-category" className="block text-xs text-muted">{t('tickets.category')}</label>
+                <select id="t-category" className="bg-input rounded-lg px-3 py-2 text-sm w-full" value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}>
                   <option value="">{t('tickets.category')} (auto IA)</option>
                   {['network', 'account', 'infrastructure', 'messaging', 'application', 'general'].map((c) => <option key={c}>{c}</option>)}
@@ -89,70 +89,70 @@ export default function Tickets({ user }) {
               </div>
             </div>
             <div className="space-y-1">
-              <label htmlFor="t-title" className="block text-xs text-slate-400">{t('tickets.titleField')}</label>
-              <input id="t-title" required className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder={t('tickets.titleField')}
+              <label htmlFor="t-title" className="block text-xs text-muted">{t('tickets.titleField')}</label>
+              <input id="t-title" required className="w-full bg-input rounded-lg px-3 py-2" placeholder={t('tickets.titleField')}
                 value={form.title} onChange={set('title')} />
             </div>
             <div className="space-y-1">
-              <label htmlFor="t-desc" className="block text-xs text-slate-400">{t('tickets.description')}</label>
-              <textarea id="t-desc" required className="w-full bg-slate-800 rounded-lg px-3 py-2" rows={3}
+              <label htmlFor="t-desc" className="block text-xs text-muted">{t('tickets.description')}</label>
+              <textarea id="t-desc" required className="w-full bg-input rounded-lg px-3 py-2" rows={3}
                 placeholder={t('tickets.description')}
                 value={form.description} onChange={set('description')} />
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-sm">
-              <label className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
+              <label className="flex items-center gap-2 bg-input rounded-lg px-3 py-2">
                 <input type="checkbox" checked={form.is_existing} onChange={set('is_existing')} />
                 {t('tickets.existing')}
               </label>
               {form.is_existing && (
                 <div className="space-y-1">
-                  <label htmlFor="t-related" className="block text-xs text-slate-400">{t('tickets.related')}</label>
-                  <input id="t-related" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder={t('tickets.related')}
+                  <label htmlFor="t-related" className="block text-xs text-muted">{t('tickets.related')}</label>
+                  <input id="t-related" className="bg-input rounded-lg px-3 py-2 w-full" placeholder={t('tickets.related')}
                     value={form.related_ticket_number} onChange={set('related_ticket_number')} />
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <label htmlFor="t-firstseen" className="text-xs text-slate-500 whitespace-nowrap">{t('tickets.firstSeen')}</label>
-                <input id="t-firstseen" type="date" className="flex-1 bg-slate-800 rounded-lg px-3 py-2"
+                <label htmlFor="t-firstseen" className="text-xs text-faint whitespace-nowrap">{t('tickets.firstSeen')}</label>
+                <input id="t-firstseen" type="date" className="flex-1 bg-input rounded-lg px-3 py-2"
                   value={form.first_seen_on} onChange={set('first_seen_on')} />
               </div>
               <div className="space-y-1">
-                <label htmlFor="t-users" className="block text-xs text-slate-400">{t('tickets.usersAffected')}</label>
-                <select id="t-users" className="bg-slate-800 rounded-lg px-3 py-2 w-full" value={form.users_affected} onChange={set('users_affected')}>
+                <label htmlFor="t-users" className="block text-xs text-muted">{t('tickets.usersAffected')}</label>
+                <select id="t-users" className="bg-input rounded-lg px-3 py-2 w-full" value={form.users_affected} onChange={set('users_affected')}>
                   {['1', '3', '5', '10+'].map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
-                <label htmlFor="t-asset" className="block text-xs text-slate-400">{t('tickets.asset')}</label>
-                <input id="t-asset" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder={t('tickets.asset')}
+                <label htmlFor="t-asset" className="block text-xs text-muted">{t('tickets.asset')}</label>
+                <input id="t-asset" className="bg-input rounded-lg px-3 py-2 w-full" placeholder={t('tickets.asset')}
                   value={form.asset_tag} onChange={set('asset_tag')} />
               </div>
               <div className="space-y-1">
-                <label htmlFor="t-callback" className="block text-xs text-slate-400">{t('tickets.callback')}</label>
-                <input id="t-callback" className="bg-slate-800 rounded-lg px-3 py-2 w-full" placeholder={t('tickets.callback')}
+                <label htmlFor="t-callback" className="block text-xs text-muted">{t('tickets.callback')}</label>
+                <input id="t-callback" className="bg-input rounded-lg px-3 py-2 w-full" placeholder={t('tickets.callback')}
                   value={form.callback_number} onChange={set('callback_number')} />
               </div>
             </div>
             <div className="space-y-1">
-              <label htmlFor="t-error" className="block text-xs text-slate-400">{t('tickets.errorMsg')}</label>
-              <input id="t-error" className="w-full bg-slate-800 rounded-lg px-3 py-2 text-sm" placeholder={t('tickets.errorMsg')}
+              <label htmlFor="t-error" className="block text-xs text-muted">{t('tickets.errorMsg')}</label>
+              <input id="t-error" className="w-full bg-input rounded-lg px-3 py-2 text-sm" placeholder={t('tickets.errorMsg')}
                 value={form.error_message} onChange={set('error_message')} />
             </div>
 
             <details className="text-sm">
-              <summary className="cursor-pointer text-slate-400">{t('tickets.techDetails')}</summary>
+              <summary className="cursor-pointer text-muted">{t('tickets.techDetails')}</summary>
               <div className="grid grid-cols-3 gap-2 mt-2">
-                <textarea id="t-ts" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.troubleshooting')} aria-label={t('tickets.troubleshooting')}
+                <textarea id="t-ts" className="bg-input rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.troubleshooting')} aria-label={t('tickets.troubleshooting')}
                   value={form.troubleshooting} onChange={set('troubleshooting')} />
-                <textarea id="t-rc" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.rootCause')} aria-label={t('tickets.rootCause')}
+                <textarea id="t-rc" className="bg-input rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.rootCause')} aria-label={t('tickets.rootCause')}
                   value={form.root_cause} onChange={set('root_cause')} />
-                <textarea id="t-res" className="bg-slate-800 rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.resolution')} aria-label={t('tickets.resolution')}
+                <textarea id="t-res" className="bg-input rounded-lg px-3 py-2" rows={3} placeholder={t('tickets.resolution')} aria-label={t('tickets.resolution')}
                   value={form.resolution_notes} onChange={set('resolution_notes')} />
               </div>
               <div className="space-y-1 mt-2">
-                <label htmlFor="t-kb" className="block text-xs text-slate-400">{t('tickets.kb')}</label>
-                <input id="t-kb" className="w-full bg-slate-800 rounded-lg px-3 py-2" placeholder={t('tickets.kb')}
+                <label htmlFor="t-kb" className="block text-xs text-muted">{t('tickets.kb')}</label>
+                <input id="t-kb" className="w-full bg-input rounded-lg px-3 py-2" placeholder={t('tickets.kb')}
                   value={form.kb_article} onChange={set('kb_article')} />
               </div>
             </details>
@@ -162,75 +162,75 @@ export default function Tickets({ user }) {
         <div className="space-y-2">
           {tickets.map((tk) => (
             <div key={tk.id} onClick={() => open(tk)}
-              className={`bg-slate-900 border rounded-xl p-3 cursor-pointer hover:border-cyan-700 ${sel?.id === tk.id ? 'border-cyan-600' : 'border-slate-800'}`}>
+              className={`bg-surface border rounded-xl p-3 cursor-pointer hover:border-cyan-700 ${sel?.id === tk.id ? 'border-cyan-600' : 'border-surface'}`}>
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${PRIO_COLORS[tk.priority]}`} />
-                <span className="text-slate-500 text-sm">#{tk.number}</span>
+                <span className="text-faint text-sm">#{tk.number}</span>
                 <span className="font-medium flex-1 truncate">{tk.title}</span>
-                <span className="text-xs text-slate-500">{tk.requester_name}</span>
+                <span className="text-xs text-faint">{tk.requester_name}</span>
                 <span className="text-xs text-cyan-600">{tk.assignee_name || ''}</span>
-                <span className="text-xs bg-slate-800 px-2 py-1 rounded">{tk.status}</span>
+                <span className="text-xs bg-input px-2 py-1 rounded">{tk.status}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
       {sel && (
-        <div className="w-96 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 overflow-auto">
+        <div className="w-96 bg-surface border border-surface rounded-xl p-4 space-y-3 overflow-auto">
           <h3 className="font-bold">#{sel.number} — {sel.title}</h3>
-          <p className="text-sm text-slate-400">{sel.description}</p>
-          <div className="text-xs space-y-1 bg-slate-950 rounded-lg p-2">
-            <p>{t('tickets.type')}: <span className="text-slate-300">{sel.type}</span> · {t('tickets.priority')}: <span className="text-slate-300">{sel.priority}</span> · {t('tickets.category')}: <span className="text-cyan-400">{sel.category || '—'}</span></p>
+          <p className="text-sm text-muted">{sel.description}</p>
+          <div className="text-xs space-y-1 bg-page rounded-lg p-2">
+            <p>{t('tickets.type')}: <span className="text-body">{sel.type}</span> · {t('tickets.priority')}: <span className="text-body">{sel.priority}</span> · {t('tickets.category')}: <span className="text-cyan-400">{sel.category || '—'}</span></p>
             <p>{t('tickets.comments')}: <span className="text-cyan-300">{sel.requester_name || sel.requester_id}</span></p>
             <p>{t('tickets.assign')}: <span className="text-cyan-300">{sel.assignee_name || 'non assigné'}</span></p>
             <p>Créé: {new Date(sel.created_at).toLocaleString(langFmt())}</p>
-            <p className="border-t border-slate-800 pt-1">{sel.is_existing ? t('tickets.existing') : t('tickets.new')}
+            <p className="border-t border-surface pt-1">{sel.is_existing ? t('tickets.existing') : t('tickets.new')}
               {sel.is_existing && sel.related_ticket_number ? ` · lié au #${sel.related_ticket_number}` : ''}
               {sel.first_seen_on ? ` · ${t('tickets.firstSeen')}: ${sel.first_seen_on}` : ''}
               {sel.users_affected ? ` · ${sel.users_affected}` : ''}</p>
-            {sel.asset_tag && <p>{t('tickets.asset')}: <span className="text-slate-300">{sel.asset_tag}</span></p>}
-            {sel.callback_number && <p>{t('tickets.callback')}: <span className="text-slate-300">{sel.callback_number}</span></p>}
-            {sel.error_message && <p>{t('tickets.errorMsg')}: <span className="text-slate-300">{sel.error_message}</span></p>}
+            {sel.asset_tag && <p>{t('tickets.asset')}: <span className="text-body">{sel.asset_tag}</span></p>}
+            {sel.callback_number && <p>{t('tickets.callback')}: <span className="text-body">{sel.callback_number}</span></p>}
+            {sel.error_message && <p>{t('tickets.errorMsg')}: <span className="text-body">{sel.error_message}</span></p>}
             {sel.kb_article && <p>KB: <span className="text-cyan-400">{sel.kb_article}</span></p>}
-            {sel.troubleshooting && <p>{t('tickets.troubleshooting')}: <span className="text-slate-300 whitespace-pre-wrap">{sel.troubleshooting}</span></p>}
-            {sel.root_cause && <p>{t('tickets.rootCause')}: <span className="text-slate-300">{sel.root_cause}</span></p>}
-            {sel.resolution_notes && <p>{t('tickets.resolution')}: <span className="text-slate-300 whitespace-pre-wrap">{sel.resolution_notes}</span></p>}
+            {sel.troubleshooting && <p>{t('tickets.troubleshooting')}: <span className="text-body whitespace-pre-wrap">{sel.troubleshooting}</span></p>}
+            {sel.root_cause && <p>{t('tickets.rootCause')}: <span className="text-body">{sel.root_cause}</span></p>}
+            {sel.resolution_notes && <p>{t('tickets.resolution')}: <span className="text-body whitespace-pre-wrap">{sel.resolution_notes}</span></p>}
           </div>
           {aiBadge && <p className="text-xs text-violet-400">✨ {t('tickets.classifiedByAI')}</p>}
           <div className="flex flex-wrap gap-1">
             {STATUSES.map((s) => (
               <button key={s} onClick={() => setStatus(s)} aria-pressed={sel.status === s}
-                className={`text-xs px-2 py-1 rounded ${sel.status === s ? 'bg-cyan-600' : 'bg-slate-800 hover:bg-slate-700'}`}>{s}</button>
+                className={`text-xs px-2 py-1 rounded ${sel.status === s ? 'bg-cyan-600' : 'bg-input hover:bg-slate-700'}`}>{s}</button>
             ))}
           </div>
           <button onClick={() => api(`/tickets/${sel.id}`, { method: 'PATCH', body: { assignee_id: user.sub } }).then(() => open(sel))}
-            className="w-full bg-slate-800 hover:bg-slate-700 rounded-lg py-1.5 text-xs">{t('tickets.assign')}</button>
+            className="w-full bg-input hover:bg-slate-700 rounded-lg py-1.5 text-xs">{t('tickets.assign')}</button>
           <button onClick={askAI} className="w-full bg-violet-600/30 border border-violet-600 text-violet-300 rounded-lg py-2 text-sm">💡 {t('tickets.aiSuggestion')}</button>
           {suggest && (
-            <ol className="text-sm space-y-1 list-decimal list-inside text-slate-300">
+            <ol className="text-sm space-y-1 list-decimal list-inside text-body">
               {suggest.steps.map((s, i) => <li key={i}>{s}</li>)}
             </ol>
           )}
-          <div className="border-t border-slate-800 pt-2">
-            <p className="text-xs font-semibold text-slate-500 mb-1">{t('tickets.comments')}</p>
+          <div className="border-t border-surface pt-2">
+            <p className="text-xs font-semibold text-faint mb-1">{t('tickets.comments')}</p>
             {sel.comments?.map((c) => (
               <div key={c.id} className="text-xs mb-1">
                 <span className="text-cyan-300">{c.author_name || c.author_id}</span>
                 <span className="text-slate-600"> · {new Date(c.created_at).toLocaleString(langFmt())}</span>
-                <p className="text-slate-300">{c.body}</p>
+                <p className="text-body">{c.body}</p>
               </div>
             ))}
             <form onSubmit={async (e) => { e.preventDefault(); const body = e.target.c.value; if (!body) return; await api(`/tickets/${sel.id}/comments`, { method: 'POST', body: { body } }); e.target.reset(); open(sel); }}
               className="flex gap-1 mt-1">
               <label htmlFor="ticket-comment" className="sr-only">{t('tickets.comments')}</label>
-              <input id="ticket-comment" name="c" className="flex-1 bg-slate-800 rounded px-2 py-1 text-xs" placeholder={t('tickets.commentPlaceholder')} />
+              <input id="ticket-comment" name="c" className="flex-1 bg-input rounded px-2 py-1 text-xs" placeholder={t('tickets.commentPlaceholder')} />
               <button type="submit" className="bg-cyan-600 rounded px-2 text-xs">→</button>
             </form>
           </div>
-          <div className="border-t border-slate-800 pt-2">
-            <p className="text-xs font-semibold text-slate-500 mb-1">{t('tickets.history')}</p>
+          <div className="border-t border-surface pt-2">
+            <p className="text-xs font-semibold text-faint mb-1">{t('tickets.history')}</p>
             {sel.history?.map((h) => (
-              <p key={h.id} className="text-xs text-slate-500">
+              <p key={h.id} className="text-xs text-faint">
                 <span className="text-cyan-300">{h.actor_name || 'système'}</span> · {h.field}: {h.old_value ?? '—'} → {h.new_value}
                 <span className="text-slate-600"> · {new Date(h.at).toLocaleString(langFmt())}</span>
               </p>

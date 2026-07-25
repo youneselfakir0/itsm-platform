@@ -4,7 +4,7 @@ import { useI18n } from '../i18n.js';
 
 function Card({ label, value, accent }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-surface border border-surface rounded-xl p-4">
       <p className="text-sm text-slate-500">{label}</p>
       <p className={`text-3xl font-bold ${accent || ''}`}>{value}</p>
     </div>
@@ -26,17 +26,17 @@ export default function Dashboard() {
         <Card label={t('dashboard.mttr')} value={d.mttr_hours} accent="text-violet-400" />
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-surface border border-surface rounded-xl p-4">
           <p className="font-semibold mb-2">{t('dashboard.byStatus')}</p>
-          {d.by_status.map((s) => <p key={s.status} className="text-sm flex justify-between"><span className="text-slate-400">{s.status}</span><span>{s.count}</span></p>)}
+          {d.by_status.map((s) => <p key={s.status} className="text-sm flex justify-between"><span className="text-muted">{s.status}</span><span>{s.count}</span></p>)}
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-surface border border-surface rounded-xl p-4">
           <p className="font-semibold mb-2">{t('dashboard.cmdb')}</p>
-          {d.cmdb.map((c) => <p key={c.class} className="text-sm flex justify-between"><span className="text-slate-400">{c.class}</span><span>{c.count}</span></p>)}
+          {d.cmdb.map((c) => <p key={c.class} className="text-sm flex justify-between"><span className="text-muted">{c.class}</span><span>{c.count}</span></p>)}
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-surface border border-surface rounded-xl p-4">
           <p className="font-semibold mb-2">{t('dashboard.jobs')}</p>
-          {d.automation.map((j) => <p key={j.status} className="text-sm flex justify-between"><span className="text-slate-400">{j.status}</span><span>{j.count}</span></p>)}
+          {d.automation.map((j) => <p key={j.status} className="text-sm flex justify-between"><span className="text-muted">{j.status}</span><span>{j.count}</span></p>)}
         </div>
       </div>
     </div>

@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+/* Theme tokens — dark is the default, light overrides via [data-theme="light"]. */
+:root,
+[data-theme="dark"] {
+  --bg-page: #020617;      /* slate-950 */
+  --bg-surface: #0f172a;   /* slate-900 */
+  --bg-input: #1e293b;     /* slate-800 */
+  --border-surface: #1e293b;
+  --text-body: #e2e8f0;    /* slate-200 */
+  --text-muted: #94a3b8;   /* slate-400 */
+  --text-faint: #64748b;   /* slate-500 */
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg-page: #f1f5f9;      /* slate-100 */
+  --bg-surface: #ffffff;
+  --bg-input: #e2e8f0;     /* slate-200 */
+  --border-surface: #cbd5e1;
+  --text-body: #0f172a;    /* slate-900 */
+  --text-muted: #475569;   /* slate-600 */
+  --text-faint: #64748b;   /* slate-500 */
+  color-scheme: light;
+}
+
+/* Utility classes bound to theme tokens (used instead of hardcoded slate-* on containers). */
+.bg-page { background-color: var(--bg-page); }
+.bg-surface { background-color: var(--bg-surface); }
+.bg-input { background-color: var(--bg-input); }
+.border-surface { border-color: var(--border-surface); }
+.text-body { color: var(--text-body); }
+.text-muted { color: var(--text-muted); }
+.text-faint { color: var(--text-faint); }
+
+body { background-color: var(--bg-page); color: var(--text-body); }
+
+/* Visible focus ring for keyboard users (accessibility). */
+:focus-visible { outline: 2px solid #22d3ee; outline-offset: 2px; }
+
+/* Skip link — hidden until focused. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: #0ea5e9; color: #fff; padding: 0.5rem 1rem; border-radius: 0 0 0.5rem 0;
+}
+.skip-link:focus { left: 0; }
