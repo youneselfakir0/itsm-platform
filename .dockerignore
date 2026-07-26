@@ -9,6 +9,8 @@ dist
 Dockerfile
 .dockerignore
 coverage
+**/tsconfig.tsbuildinfo
+**/*.tsbuildinfo
 k8s
 nginx/certs
 **/e2e_*.js

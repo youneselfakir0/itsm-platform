@@ -11,3 +11,6 @@ k8s/**/00-secrets.local.yaml
 k8s/**/00-config.yaml
 k8s/onprem/00-secrets.local.yaml
 .env.example.bak
+
+# tsc incremental build cache (breaks Docker builds: stale tsbuildinfo makes tsc skip emit -> COPY dist not found)
+**/*.tsbuildinfo
