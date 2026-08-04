@@ -8,6 +8,7 @@ import Cmdb from './views/Cmdb.jsx';
 import Automation from './views/Automation.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import Copilot from './views/Copilot.jsx';
+import CommandCenter from './views/CommandCenter.jsx';
 
 const NAV = [
   { id: 'tickets', key: 'nav.tickets', perm: 'ticket:read' },
@@ -16,6 +17,7 @@ const NAV = [
   { id: 'automation', key: 'nav.automation', perm: 'automation:read' },
   { id: 'dashboard', key: 'nav.dashboard', perm: 'report:read' },
   { id: 'copilot', key: 'nav.copilot', perm: 'ai:use' },
+  { id: 'command', key: 'nav.command', perm: 'ai:use' },
 ];
 
 function LangSwitcher() {
@@ -92,7 +94,7 @@ export default function App() {
   const perms = user.permissions || [];
   const has = (p) => perms.includes(p) || perms.includes('admin:*');
   const nav = NAV.filter((n) => has(n.perm));
-  const Views = { tickets: Tickets, catalog: Catalog, cmdb: Cmdb, automation: Automation, dashboard: Dashboard, copilot: Copilot };
+  const Views = { tickets: Tickets, catalog: Catalog, cmdb: Cmdb, automation: Automation, dashboard: Dashboard, copilot: Copilot, command: CommandCenter };
   const View = Views[view] || Tickets;
 
   return (
