@@ -91,4 +91,25 @@ export class NotificationService {
       ]),
     ]);
   }
+
+  /** Relais d'événement ticket vers TwisterLab (webhook interne, best-effort). */
+  async ticketEvent(t: { number: number; event_type: string }): Promise<{ ok: boolean; dry_run: boolean }> {
+    const EVENTS_WEBHOOK_URL = process.env.EVENTS_WEBHOOK_URL;
+    const EVENTS_WEBHOOK_SECRET = process.env.EVENTS_WEBHOOK_SECRET;
+    if (!EVENTS_WEBHOOK_URL) {
+      this.log.log(`[DRY-RUN] events: #${t.number} ${t.event_type}`);
+      return { ok: true, dry_run: true };
+    }
+    try {
+      const r = await fetch(EVENTS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Events-Key': EVENTS_WEBHOOK_SECRET || '' },
+        body: JSON.stringify({ ticket_id: String(t.number), event_type: t.event_type }),
+      });
+      return { ok: r.ok, dry_run: false };
+    } catch (e: any) {
+      this.log.warn(`events webhook échoué: ${e?.message ?? e}`);
+      return { ok: false, dry_run: false };   // jamais throw
+    }
+  }
 }

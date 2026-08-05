@@ -44,6 +44,7 @@ export class TicketingService {
     // Notification : nouveau ticket (fire-and-forget)
     const notif = (this as any).notif as NotificationService | undefined;
     if (notif) notif.ticketCreated({ number: Number(created.number), title: created.title, priority: created.priority, category: created.category ?? undefined, requester_name: user.sub }).catch?.(() => {});
+    notif.ticketEvent({ number: Number(created.number), event_type: 'created' }).catch?.(() => {});
     return created;
   }
 
@@ -93,6 +94,9 @@ export class TicketingService {
     if (dto.status === 'resolved') data.resolved_at = new Date();
     data.updated_at = new Date();
     const updated = await this.prisma.tickets.update({ where: { id }, data });
+    // Relais événement vers TwisterLab (Option C, piste 2) — best-effort
+    const notif = (this as any).notif as NotificationService | undefined;
+    if (notif) notif.ticketEvent({ number: Number(updated.number), event_type: dto.status === 'resolved' ? 'resolved' : 'status_changed' }).catch?.(() => {});
     // audit applicatif AVEC acteur — qui a changé quoi
     const logs = allowed
       .filter((k) => dto[k] !== undefined && String((before as any)[k] ?? '') !== String(dto[k] ?? ''))
